@@ -18,7 +18,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **CONN-07**: User can re-authenticate when a connection breaks
 - [ ] **CONN-08**: User can unlink a connected institution
 - [ ] **CONN-09**: User can keep manual accounts alongside Plaid-linked accounts
-- [ ] **CONN-10**: Plaid access tokens are encrypted at rest (AES-256-GCM)
+- [x] **CONN-10**: Plaid access tokens are encrypted at rest (AES-256-GCM)
 
 ### Transaction Sync
 
@@ -137,7 +137,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONN-07 | Phase 2 | Pending |
 | CONN-08 | Phase 2 | Pending |
 | CONN-09 | Phase 2 | Pending |
-| CONN-10 | Phase 1 | Pending |
+| CONN-10 | Phase 1 | Complete |
 | SYNC-01 | Phase 4 | Pending |
 | SYNC-02 | Phase 4 | Pending |
 | SYNC-03 | Phase 4 | Pending |
@@ -183,4 +183,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 after roadmap creation*
+*Last updated: 2026-01-30 — Phase 1 complete (CONN-10 verified)*

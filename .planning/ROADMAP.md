@@ -6,7 +6,7 @@ SpendWise transforms from a manual finance tracker into an automated, AI-powered
 
 ## Phases
 
-- [ ] **Phase 1: Database Schema & Encryption** - Extend schema for Plaid data and implement token encryption
+- [x] **Phase 1: Database Schema & Encryption** - Extend schema for Plaid data and implement token encryption
 - [ ] **Phase 2: Plaid Integration Foundation** - Core connectivity infrastructure with Link flow
 - [ ] **Phase 3: Account Sync** - Sync bank, credit, savings, and investment accounts via Plaid
 - [ ] **Phase 4: Transaction Sync** - Daily automatic transaction sync with deduplication
@@ -37,8 +37,8 @@ SpendWise transforms from a manual finance tracker into an automated, AI-powered
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Extend Prisma schema with Plaid models and apply database migration
-- [ ] 01-02-PLAN.md -- Install prisma-field-encryption and validate AES-256-GCM token encryption
+- [x] 01-01-PLAN.md -- Extend Prisma schema with Plaid models and apply database migration
+- [x] 01-02-PLAN.md -- Install prisma-field-encryption and validate AES-256-GCM token encryption
 
 ---
 
@@ -276,7 +276,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Schema & Encryption | 0/2 | Planning complete | - |
+| 1. Database Schema & Encryption | 2/2 | ✓ Complete | 2026-01-30 |
 | 2. Plaid Integration Foundation | 0/TBD | Not started | - |
 | 3. Account Sync | 0/TBD | Not started | - |
 | 4. Transaction Sync | 0/TBD | Not started | - |
@@ -290,4 +290,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30*
+*Last updated: 2026-01-30 — Phase 1 complete*
