@@ -34,11 +34,11 @@ SpendWise transforms from a manual finance tracker into an automated, AI-powered
 3. Encryption key management system is in place and secure
 4. Schema supports coexistence of manual and Plaid-linked accounts
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Extend Prisma schema with Plaid models and apply database migration
+- [ ] 01-02-PLAN.md -- Install prisma-field-encryption and validate AES-256-GCM token encryption
 
 ---
 
@@ -276,7 +276,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Schema & Encryption | 0/TBD | Not started | - |
+| 1. Database Schema & Encryption | 0/2 | Planning complete | - |
 | 2. Plaid Integration Foundation | 0/TBD | Not started | - |
 | 3. Account Sync | 0/TBD | Not started | - |
 | 4. Transaction Sync | 0/TBD | Not started | - |
