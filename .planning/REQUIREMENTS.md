@@ -128,13 +128,59 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Updated during roadmap creation) | | |
+| CONN-01 | Phase 2 | Pending |
+| CONN-02 | Phase 2 | Pending |
+| CONN-03 | Phase 2 | Pending |
+| CONN-04 | Phase 2 | Pending |
+| CONN-05 | Phase 2 | Pending |
+| CONN-06 | Phase 2 | Pending |
+| CONN-07 | Phase 2 | Pending |
+| CONN-08 | Phase 2 | Pending |
+| CONN-09 | Phase 2 | Pending |
+| CONN-10 | Phase 1 | Pending |
+| SYNC-01 | Phase 4 | Pending |
+| SYNC-02 | Phase 4 | Pending |
+| SYNC-03 | Phase 4 | Pending |
+| SYNC-04 | Phase 4 | Pending |
+| SYNC-05 | Phase 4 | Pending |
+| CATG-01 | Phase 5 | Pending |
+| CATG-02 | Phase 5 | Pending |
+| CATG-03 | Phase 5 | Pending |
+| CATG-04 | Phase 5 | Pending |
+| CATG-05 | Phase 5 | Pending |
+| CATG-06 | Phase 5 | Pending |
+| CATG-07 | Phase 5 | Pending |
+| CATG-08 | Phase 5 | Pending |
+| SPND-01 | Phase 6 | Pending |
+| SPND-02 | Phase 6 | Pending |
+| SPND-03 | Phase 6 | Pending |
+| SPND-04 | Phase 6 | Pending |
+| SPND-05 | Phase 6 | Pending |
+| RECR-01 | Phase 7 | Pending |
+| RECR-02 | Phase 7 | Pending |
+| RECR-03 | Phase 7 | Pending |
+| NWTH-01 | Phase 8 | Pending |
+| NWTH-02 | Phase 8 | Pending |
+| NWTH-03 | Phase 8 | Pending |
+| INVS-01 | Phase 9 | Pending |
+| INVS-02 | Phase 9 | Pending |
+| INVS-03 | Phase 9 | Pending |
+| INVS-04 | Phase 9 | Pending |
+| INVS-05 | Phase 9 | Pending |
+| PLAN-01 | Phase 10 | Pending |
+| PLAN-02 | Phase 10 | Pending |
+| PLAN-03 | Phase 10 | Pending |
+| PLAN-04 | Phase 10 | Pending |
+| PLAN-05 | Phase 10 | Pending |
+| DASH-01 | Phase 11 | Pending |
+| DASH-02 | Phase 11 | Pending |
+| DASH-03 | Phase 11 | Pending |
 
 **Coverage:**
 - v1 requirements: 38 total
-- Mapped to phases: 0
-- Unmapped: 38 ⚠️
+- Mapped to phases: 38
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 after initial definition*
+*Last updated: 2026-01-30 after roadmap creation*
