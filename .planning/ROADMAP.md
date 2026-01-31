@@ -59,12 +59,14 @@ Plans:
 6. User can unlink a connected institution and remove its data
 7. Manual accounts and Plaid-linked accounts coexist in the UI
 
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md -- Backend Plaid SDK client + GraphQL API for all Plaid operations
+- [ ] 02-02-PLAN.md -- Backend webhook endpoint for Plaid connection status notifications
+- [ ] 02-03-PLAN.md -- Frontend Plaid Link flow with react-plaid-link + hooks + success modal
+- [ ] 02-04-PLAN.md -- Accounts page redesign with type grouping, balance summary, and connection status
+- [ ] 02-05-PLAN.md -- Settings page institution management with re-auth and unlink flows
 
 ---
 
@@ -277,7 +279,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Schema & Encryption | 2/2 | ✓ Complete | 2026-01-30 |
-| 2. Plaid Integration Foundation | 0/TBD | Not started | - |
+| 2. Plaid Integration Foundation | 0/5 | Planned | - |
 | 3. Account Sync | 0/TBD | Not started | - |
 | 4. Transaction Sync | 0/TBD | Not started | - |
 | 5. AI Categorization | 0/TBD | Not started | - |
@@ -290,4 +292,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30 — Phase 1 complete*
+*Last updated: 2026-01-30 -- Phase 2 planned (5 plans in 3 waves)*
