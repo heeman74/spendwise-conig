@@ -57,9 +57,23 @@ export const analyticsTypeDefs = gql`
     savingsGoals: [SavingsGoal!]!
   }
 
+  input DateRangeInput {
+    start: DateTime!
+    end: DateTime!
+  }
+
+  type MerchantStats {
+    merchant: String!
+    totalAmount: Decimal!
+    transactionCount: Int!
+    averageAmount: Decimal!
+    categoryBreakdown: [CategoryAmount!]!
+  }
+
   extend type Query {
-    analytics(period: Period = MONTH): Analytics!
+    analytics(period: Period = MONTH, dateRange: DateRangeInput, accountIds: [ID!]): Analytics!
     dashboardStats: DashboardStats!
-    spendingByCategory(period: Period = MONTH): [CategoryAmount!]!
+    spendingByCategory(period: Period = MONTH, dateRange: DateRangeInput, accountIds: [ID!]): [CategoryAmount!]!
+    topMerchants(dateRange: DateRangeInput, accountIds: [ID!], limit: Int = 10): [MerchantStats!]!
   }
 `;
