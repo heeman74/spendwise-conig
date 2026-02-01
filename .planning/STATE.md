@@ -6,23 +6,23 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Users see their complete financial picture in one place — every account, every transaction imported from statements and automatically categorized — with AI-powered advice on how to save more and invest smarter based on their personal goals.
 
-**Current focus:** Phase 2 — AI Categorization Enhancement
+**Current focus:** Phase 3 — Spending Analysis
 
 ## Current Position
 
-Phase: 2 of 8 (AI Categorization Enhancement) — COMPLETE
-Plan: 3 of 3 complete
-Status: Phase 2 complete - Transaction review UI and feedback loop wired
-Last activity: 2026-02-01 — Completed 02-03-PLAN.md (Transaction review UI)
+Phase: 3 of 8 (Spending Analysis) — IN PROGRESS
+Plan: 1 of 5 complete
+Status: Analytics API enhanced with filtering and trends
+Last activity: 2026-02-01 — Completed 03-01-PLAN.md (Analytics API Enhancement)
 
-Progress: [████░░░░░░] 20% (Phase 1 complete, Phase 2 complete, 6 active phases remaining)
+Progress: [████░░░░░░] 21% (Phase 1 complete, Phase 2 complete, Phase 3 started, 5 active phases remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2)
-- Average duration: 5min 12s
-- Total execution time: 0.66 hours
+- Total plans completed: 9 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 1 Phase 3)
+- Average duration: 5min 4s
+- Total execution time: 0.76 hours
 
 **By Phase:**
 
@@ -30,11 +30,12 @@ Progress: [████░░░░░░] 20% (Phase 1 complete, Phase 2 comple
 |-------|-------|-------|----------|
 | 01-database-schema-encryption | 2 | 8min | 4min |
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
+| 03-spending-analysis | 1 | 4min | 4min |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (4min 43s), 02-02 (7min), 02-01 (6min 25s), 02-03-Plaid (4min), 02-02-Plaid (3min)
-- Trend: Phase 2 faster on final plan (UI-only vs full-stack AI integration)
+- Last 5 plans: 03-01 (4min), 02-03 (4min 43s), 02-02 (7min), 02-01 (6min 25s), 02-03-Plaid (4min)
+- Trend: Backend API plans faster than full-stack (avg 4min vs 6min)
 
 *Updated after each plan completion*
 
@@ -45,6 +46,10 @@ Progress: [████░░░░░░] 20% (Phase 1 complete, Phase 2 comple
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **6-month trend window for time series data** (03-01) — Provides meaningful historical context without overwhelming the chart
+- **Default to current month if dateRange not provided to topMerchants** (03-01) — Matches analytics query behavior for consistency
+- **Filter-aware cache keys include all parameters** (03-01) — Prevents cache collisions between different filter combinations
+- **Composite index [userId, date, type] optimizes analytics queries** (03-01) — Supports common query pattern, prevents sequential scans
 - **70% confidence threshold for "needs review"** (02-03) — Matches existing amber dot indicator in TransactionItem for visual consistency
 - **Exclude manual and rule sources from review query** (02-03) — User has already confirmed these categorizations
 - **Refetch review list after transaction edit** (02-03) — Ensures corrected transactions disappear immediately from review tab
@@ -77,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 17:29:29 UTC
-Stopped at: Completed 02-03-PLAN.md (Transaction Review UI) - Phase 2 complete
+Last session: 2026-02-01 23:23:09 UTC
+Stopped at: Completed 03-01-PLAN.md (Analytics API Enhancement) - Phase 3 started
 Resume file: None
