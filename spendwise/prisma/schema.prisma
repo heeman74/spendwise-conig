@@ -89,6 +89,7 @@ model Transaction {
   @@index([category])
   @@index([plaidTransactionId])
   @@index([importId])
+  @@index([userId, date, type])
 }
 
 model SavingsGoal {
