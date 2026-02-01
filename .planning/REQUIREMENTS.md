@@ -41,11 +41,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Spending Analysis
 
-- [ ] **SPND-01**: User can view spending breakdown by category (pie/bar chart)
-- [ ] **SPND-02**: User can view monthly spending trends over time
-- [ ] **SPND-03**: User can see month-over-month spending comparison
-- [ ] **SPND-04**: User can view top merchants by frequency and amount
-- [ ] **SPND-05**: User can filter spending analysis by date range and account
+- [x] **SPND-01**: User can view spending breakdown by category (pie/bar chart)
+- [x] **SPND-02**: User can view monthly spending trends over time
+- [x] **SPND-03**: User can see month-over-month spending comparison
+- [x] **SPND-04**: User can view top merchants by frequency and amount
+- [x] **SPND-05**: User can filter spending analysis by date range and account
 
 ### Recurring Transactions
 
@@ -151,11 +151,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CATG-06 | Phase 2 | Complete |
 | CATG-07 | Phase 2 | Complete |
 | CATG-08 | Phase 2 | Complete |
-| SPND-01 | Phase 6 | Pending |
-| SPND-02 | Phase 6 | Pending |
-| SPND-03 | Phase 6 | Pending |
-| SPND-04 | Phase 6 | Pending |
-| SPND-05 | Phase 6 | Pending |
+| SPND-01 | Phase 3 | Complete |
+| SPND-02 | Phase 3 | Complete |
+| SPND-03 | Phase 3 | Complete |
+| SPND-04 | Phase 3 | Complete |
+| SPND-05 | Phase 3 | Complete |
 | RECR-01 | Phase 7 | Pending |
 | RECR-02 | Phase 7 | Pending |
 | RECR-03 | Phase 7 | Pending |
@@ -183,4 +183,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-02-01 — Phase 2 complete (CATG-01 through CATG-08 verified)*
+*Last updated: 2026-02-01 — Phase 3 complete (SPND-01 through SPND-05 verified)*
