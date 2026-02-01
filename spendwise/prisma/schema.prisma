@@ -1,0 +1,308 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  name     String?
+  password String?
+  image    String?
+
+  // Two-Factor Authentication fields
+  phoneNumber           String? // Encrypted with AES-256
+  emailVerified         Boolean @default(false)
+  phoneVerified         Boolean @default(false)
+  twoFactorEmailEnabled Boolean @default(false)
+  twoFactorSmsEnabled   Boolean @default(false)
+  backupCodes           String? // JSON array of hashed codes
+
+  accounts              Account[]
+  transactions          Transaction[]
+  goals                 SavingsGoal[]
+  twoFactorCodes        TwoFactorCode[]
+  twoFactorLogs         TwoFactorLog[]
+  plaidItems            PlaidItem[]
+  recurringTransactions RecurringTransaction[]
+  statementImports      StatementImport[]
+  merchantRules         MerchantRule[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+}
+
+model Account {
+  id             String              @id @default(cuid())
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  type           AccountType
+  balance        Decimal             @db.Decimal(12, 2)
+  institution    String
+  lastSynced     DateTime?
+  // Plaid integration fields
+  plaidAccountId String? // Plaid's unique account identifier
+  plaidItemId    String? // Links to PlaidItem
+  plaidItem      PlaidItem?          @relation(fields: [plaidItemId], references: [id])
+  isLinked       Boolean             @default(false) // Manual vs Plaid-linked
+  mask           String? // Last 4 digits
+  officialName   String? // Institution's official account name
+  transactions     Transaction[]
+  holdings         InvestmentHolding[]
+  statementImports StatementImport[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([plaidAccountId])
+}
+
+model Transaction {
+  id                      String          @id @default(cuid())
+  userId                  String
+  user                    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId               String
+  account                 Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  amount                  Decimal         @db.Decimal(12, 2)
+  type                    TransactionType
+  category                String
+  merchant                String?
+  description             String?
+  date                    DateTime
+  // Plaid integration fields
+  plaidTransactionId      String?         @unique // Plaid's unique transaction identifier
+  pending                 Boolean         @default(false) // Pending vs posted
+  personalFinanceCategory String? // Enhanced categorization from Plaid
+  paymentChannel          String? // online, in store, other
+  importId                String? // Links to StatementImport
+  categoryConfidence      Int?    // 0-100 confidence from AI
+  categorySource          String? // "ai", "rule", "keyword", "manual", "cache"
+  createdAt               DateTime        @default(now())
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([date])
+  @@index([category])
+  @@index([plaidTransactionId])
+  @@index([importId])
+}
+
+model SavingsGoal {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  targetAmount  Decimal   @db.Decimal(12, 2)
+  currentAmount Decimal   @default(0) @db.Decimal(12, 2)
+  deadline      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model PlaidItem {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String /// @encrypted
+  accessTokenHash       String? /// @encryption:hash(accessToken)
+  plaidItemId           String    @unique
+  plaidInstitutionId    String
+  institutionName       String
+  status                String    @default("active") // "active", "error", "pending_disconnect"
+  transactionsCursor    String?
+  consentExpirationTime DateTime?
+  accounts              Account[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([plaidItemId])
+  @@index([status])
+}
+
+model Security {
+  id              String              @id @default(cuid())
+  plaidSecurityId String              @unique
+  name            String
+  tickerSymbol    String?
+  type            String // "equity", "etf", "mutual fund", "cash", "bond"
+  closePrice      Decimal?            @db.Decimal(12, 4)
+  closePriceAsOf  DateTime?
+  sector          String?
+  industry        String?
+  holdings        InvestmentHolding[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([plaidSecurityId])
+  @@index([tickerSymbol])
+}
+
+model InvestmentHolding {
+  id               String   @id @default(cuid())
+  accountId        String
+  account          Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  securityId       String
+  security         Security @relation(fields: [securityId], references: [id])
+  quantity         Decimal  @db.Decimal(12, 6)
+  institutionPrice Decimal  @db.Decimal(12, 4)
+  institutionValue Decimal  @db.Decimal(12, 2)
+  costBasis        Decimal? @db.Decimal(12, 2)
+  isoCurrencyCode  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([accountId])
+  @@index([securityId])
+}
+
+model RecurringTransaction {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidStreamId  String   @unique
+  description    String
+  merchantName   String?
+  category       String
+  frequency      String // "WEEKLY", "BIWEEKLY", "MONTHLY", "SEMI_MONTHLY", "ANNUALLY"
+  isActive       Boolean  @default(true)
+  lastAmount     Decimal  @db.Decimal(12, 2)
+  averageAmount  Decimal  @db.Decimal(12, 2)
+  lastDate       DateTime
+  firstDate      DateTime
+  transactionIds String[] // Array of transaction IDs in this stream
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@index([plaidStreamId])
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT
+  INVESTMENT
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+// Two-Factor Authentication Models
+model TwoFactorCode {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String // 6-digit code (hashed with bcrypt)
+  type      TwoFactorType
+  purpose   TwoFactorPurpose
+  expiresAt DateTime
+  verified  Boolean          @default(false)
+  attempts  Int              @default(0)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, verified, expiresAt])
+  @@index([expiresAt])
+}
+
+model TwoFactorLog {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     TwoFactorEvent
+  type      TwoFactorType?
+  success   Boolean
+  ipAddress String?
+  userAgent String?
+  metadata  String? // JSON for additional context
+  createdAt DateTime       @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+enum TwoFactorType {
+  EMAIL
+  SMS
+  BACKUP_CODE
+}
+
+enum TwoFactorPurpose {
+  LOGIN
+  SETUP
+  DISABLE
+}
+
+enum TwoFactorEvent {
+  CODE_SENT
+  CODE_VERIFIED
+  CODE_FAILED
+  SETUP_STARTED
+  SETUP_COMPLETED
+  DISABLED
+  BACKUP_CODE_USED
+}
+
+model StatementImport {
+  id                   String          @id @default(cuid())
+  userId               String
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName             String
+  fileFormat           StatementFormat
+  fileSize             Int
+  status               ImportStatus    @default(PENDING)
+  accountId            String?
+  account              Account?        @relation(fields: [accountId], references: [id])
+  detectedInstitution  String?
+  detectedAccountType  AccountType?
+  detectedAccountName  String?
+  detectedAccountMask  String?
+  transactionsFound    Int             @default(0)
+  transactionsImported Int             @default(0)
+  duplicatesSkipped    Int             @default(0)
+  errorMessage         String?
+  createdAt            DateTime        @default(now())
+  completedAt          DateTime?
+
+  @@index([userId])
+}
+
+model MerchantRule {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchantPattern String   // Normalized merchant key (lowercase, stripped)
+  merchantDisplay String   // Clean display name ("Amazon")
+  category        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, merchantPattern])
+  @@index([userId])
+  @@index([merchantPattern])
+}
+
+enum StatementFormat {
+  CSV
+  OFX
+  QFX
+  PDF
+}
+
+enum ImportStatus {
+  PENDING
+  PARSING
+  PREVIEW
+  IMPORTING
+  COMPLETED
+  ERROR
+}

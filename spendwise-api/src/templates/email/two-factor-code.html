@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Verification Code</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 40px;
+      margin: 20px 0;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .code-container {
+      background: white;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      margin: 30px 0;
+    }
+    .code {
+      font-size: 32px;
+      font-weight: bold;
+      color: #3b82f6;
+      letter-spacing: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    .expiry {
+      color: #ef4444;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>SpendWise Verification Code</h1>
+    </div>
+
+    <p>Hello,</p>
+    <p>You requested a verification code to access your SpendWise account. Enter this code to continue:</p>
+
+    <div class="code-container">
+      <div class="code">{{code}}</div>
+      <div class="expiry">Expires in {{expiresInMinutes}} minute</div>
+    </div>
+
+    <div class="warning">
+      <strong>Security Notice:</strong> If you didn't request this code, please ignore this email and secure your account immediately.
+    </div>
+
+    <p>This code can only be used once and will expire in {{expiresInMinutes}} minute. Do not share this code with anyone.</p>
+
+    <div class="footer">
+      <p>This is an automated message from SpendWise. Please do not reply to this email.</p>
+      <p>&copy; 2026 SpendWise. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
