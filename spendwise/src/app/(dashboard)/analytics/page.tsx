@@ -1,177 +1,292 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Suspense } from 'react';
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import SpendingPieChart from '@/components/charts/SpendingPieChart';
 import TrendLineChart from '@/components/charts/TrendLineChart';
 import CategoryBarChart from '@/components/charts/CategoryBarChart';
-import SavingsAreaChart from '@/components/charts/SavingsAreaChart';
+import TopMerchantsTable from '@/components/charts/TopMerchantsTable';
+import DateRangePicker from '@/components/ui/DateRangePicker';
+import AccountFilter from '@/components/ui/AccountFilter';
+import { useAnalytics, useSpendingByCategory, useTopMerchants } from '@/hooks/useDashboard';
+import { useAnalyticsFilters } from '@/hooks/useAnalyticsFilters';
+import { useAccounts } from '@/hooks/useAccounts';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
-import { getSpendingByCategory, getTrendData, getDashboardStats } from '@/data/mockData';
+import type { CategoryAmount } from '@/types';
 
-type Period = 'week' | 'month' | 'year';
+function AnalyticsContent() {
+  const { dateRange, accountIds, setDateRange, setAccountIds } = useAnalyticsFilters();
+  const { accounts, loading: accountsLoading } = useAccounts();
 
-export default function AnalyticsPage() {
-  const [period, setPeriod] = useState<Period>('month');
+  const { analytics, loading: analyticsLoading, error: analyticsError } = useAnalytics({
+    dateRange,
+    accountIds,
+  });
 
-  const spendingData = useMemo(() => getSpendingByCategory(), []);
-  const trendData = useMemo(() => getTrendData(), []);
-  const stats = useMemo(() => getDashboardStats(), []);
+  const { categories, loading: categoriesLoading, error: categoriesError } = useSpendingByCategory({
+    dateRange,
+    accountIds,
+  });
 
-  const totalSpending = spendingData.reduce((sum, item) => sum + item.amount, 0);
+  const { merchants, loading: merchantsLoading, error: merchantsError } = useTopMerchants({
+    dateRange,
+    accountIds,
+    limit: 10,
+  });
 
-  // Mock savings data for area chart
-  const savingsData = trendData.labels.map((label, index) => ({
-    name: label,
-    savings: trendData.savings[index],
-  }));
+  // Error handling
+  if (analyticsError || categoriesError || merchantsError) {
+    return (
+      <div className="space-y-6">
+        <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+          <p className="text-red-800 dark:text-red-300">
+            Failed to load analytics. Please try again.
+          </p>
+        </Card>
+      </div>
+    );
+  }
 
-  // Calculate mock comparison data
-  const previousMonthExpenses = stats.monthlyExpenses * 0.92;
-  const expenseChange = ((stats.monthlyExpenses - previousMonthExpenses) / previousMonthExpenses) * 100;
-  const previousMonthIncome = stats.monthlyIncome * 0.95;
-  const incomeChange = ((stats.monthlyIncome - previousMonthIncome) / previousMonthIncome) * 100;
+  // Helper to render comparison with proper colors
+  const renderComparison = (change: number | undefined | null, isExpense: boolean = false) => {
+    if (change === undefined || change === null) {
+      return (
+        <span className="text-sm text-gray-500 dark:text-gray-400">No change</span>
+      );
+    }
+
+    if (change === 0) {
+      return (
+        <span className="text-sm text-gray-500 dark:text-gray-400">No change</span>
+      );
+    }
+
+    const isPositive = change > 0;
+    // For expenses, UP is bad (red), DOWN is good (green)
+    // For income, UP is good (green), DOWN is bad (red)
+    const isGood = isExpense ? !isPositive : isPositive;
+    const color = isGood ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+    const arrow = isPositive ? '↑' : '↓';
+
+    return (
+      <div className="flex items-center gap-1 mt-1">
+        <span className={`text-sm ${color}`}>
+          {arrow} {Math.abs(change).toFixed(1)}%
+        </span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">vs last period</span>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Understand your spending patterns and financial trends
-          </p>
-        </div>
-        <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-          {(['week', 'month', 'year'] as Period[]).map((p) => (
-            <Button
-              key={p}
-              variant={period === p ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setPeriod(p)}
-              className="capitalize"
-            >
-              {p}
-            </Button>
-          ))}
+      {/* Page header with filters */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Spending Analysis</h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Understand your spending patterns and financial trends
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <DateRangePicker value={dateRange} onChange={setDateRange} />
+            <AccountFilter
+              accounts={accounts}
+              selectedIds={accountIds}
+              onChange={setAccountIds}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Summary cards */}
+      {/* Summary comparison cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Spending */}
         <Card>
           <p className="text-sm text-gray-500 dark:text-gray-400">Total Spending</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-            {formatCurrency(totalSpending)}
-          </p>
-          <p className={`mt-1 text-sm ${expenseChange > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {formatPercentage(expenseChange)} vs last {period}
-          </p>
+          {analyticsLoading ? (
+            <div className="mt-1 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          ) : (
+            <>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatCurrency(analytics?.summary?.totalExpenses ?? 0)}
+              </p>
+              {renderComparison(analytics?.comparison?.expensesChange, true)}
+            </>
+          )}
         </Card>
+
+        {/* Total Income */}
         <Card>
           <p className="text-sm text-gray-500 dark:text-gray-400">Total Income</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-            {formatCurrency(stats.monthlyIncome)}
-          </p>
-          <p className={`mt-1 text-sm ${incomeChange > 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {formatPercentage(incomeChange)} vs last {period}
-          </p>
+          {analyticsLoading ? (
+            <div className="mt-1 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          ) : (
+            <>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatCurrency(analytics?.summary?.totalIncome ?? 0)}
+              </p>
+              {renderComparison(analytics?.comparison?.incomeChange, false)}
+            </>
+          )}
         </Card>
+
+        {/* Net Savings */}
         <Card>
           <p className="text-sm text-gray-500 dark:text-gray-400">Net Savings</p>
-          <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(stats.monthlyIncome - stats.monthlyExpenses)}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {stats.savingsRate}% savings rate
-          </p>
+          {analyticsLoading ? (
+            <div className="mt-1 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          ) : (
+            <>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatCurrency(analytics?.summary?.netSavings ?? 0)}
+              </p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {analytics?.summary?.savingsRate?.toFixed(1) ?? 0}% savings rate
+              </p>
+            </>
+          )}
         </Card>
+
+        {/* Avg. Transaction */}
         <Card>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Daily Spending</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-            {formatCurrency(totalSpending / 30)}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Over {period === 'week' ? 7 : period === 'month' ? 30 : 365} days
-          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Transaction</p>
+          {analyticsLoading ? (
+            <div className="mt-1 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          ) : (
+            <>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatCurrency(analytics?.summary?.averageTransaction ?? 0)}
+              </p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {analytics?.summary?.transactionCount ?? 0} transactions
+              </p>
+            </>
+          )}
         </Card>
       </div>
 
       {/* Charts grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Income vs Expenses Trend */}
+        {/* Income vs Expenses Trend - Full width */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Income vs Expenses Trend</CardTitle>
           </CardHeader>
-          <TrendLineChart data={trendData} />
+          {analyticsLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-gray-500 dark:text-gray-400">Loading trend data...</div>
+            </div>
+          ) : analytics?.trends && analytics.trends.labels.length > 0 ? (
+            <TrendLineChart data={analytics.trends} />
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+              No trend data available for this period
+            </div>
+          )}
         </Card>
 
         {/* Spending by Category - Pie */}
         <Card>
           <CardHeader>
-            <CardTitle>Spending by Category</CardTitle>
+            <CardTitle>Spending by Category - Pie</CardTitle>
           </CardHeader>
-          <SpendingPieChart data={spendingData} />
+          {categoriesLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-gray-500 dark:text-gray-400">Loading categories...</div>
+            </div>
+          ) : (
+            <SpendingPieChart data={categories} />
+          )}
         </Card>
 
-        {/* Savings Over Time */}
+        {/* Spending by Category - Bar */}
         <Card>
           <CardHeader>
-            <CardTitle>Savings Over Time</CardTitle>
+            <CardTitle>Spending by Category - Bar</CardTitle>
           </CardHeader>
-          <SavingsAreaChart data={savingsData} goalAmount={2000} />
-        </Card>
-
-        {/* Category Breakdown - Bar */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Category Breakdown</CardTitle>
-          </CardHeader>
-          <CategoryBarChart data={spendingData} />
+          {categoriesLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-gray-500 dark:text-gray-400">Loading categories...</div>
+            </div>
+          ) : (
+            <CategoryBarChart data={categories} />
+          )}
         </Card>
       </div>
 
-      {/* Top spending categories */}
+      {/* Top Merchants section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Merchants</CardTitle>
+        </CardHeader>
+        <TopMerchantsTable merchants={merchants} loading={merchantsLoading} />
+      </Card>
+
+      {/* Top spending categories list */}
       <Card>
         <CardHeader>
           <CardTitle>Top Spending Categories</CardTitle>
         </CardHeader>
-        <div className="space-y-4">
-          {spendingData.slice(0, 5).map((category, index) => (
-            <div key={category.category} className="flex items-center gap-4">
-              <span className="w-6 text-sm text-gray-500 dark:text-gray-400">#{index + 1}</span>
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: category.color }}
-              />
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {category.category}
-                  </span>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {formatCurrency(category.amount)}
-                  </span>
+        {categoriesLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            ))}
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            No transactions found for this period. Try expanding your date range or changing account filters.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {categories.slice(0, 5).map((category: CategoryAmount, index: number) => (
+              <div key={category.category} className="flex items-center gap-4">
+                <span className="w-6 text-sm text-gray-500 dark:text-gray-400">#{index + 1}</span>
+                <div
+                  className="w-4 h-4 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: category.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {category.category}
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {formatCurrency(category.amount)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${category.percentage}%`,
+                        backgroundColor: category.color,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className="h-2 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${category.percentage}%`,
-                      backgroundColor: category.color,
-                    }}
-                  />
-                </div>
+                <span className="w-16 text-right text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                  {category.percentage.toFixed(1)}%
+                </span>
               </div>
-              <span className="w-16 text-right text-sm text-gray-500 dark:text-gray-400">
-                {category.percentage.toFixed(1)}%
-              </span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-500 dark:text-gray-400">Loading analytics...</div>
+      </div>
+    }>
+      <AnalyticsContent />
+    </Suspense>
   );
 }
