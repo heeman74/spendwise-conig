@@ -115,11 +115,12 @@ Plans:
 4. User can view top merchants by frequency and total amount spent
 5. User can filter all spending analysis by date range and specific accounts
 
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Extend analytics GraphQL API with date/account filters, multi-month trends, and topMerchants query
+- [ ] 03-02-PLAN.md -- Frontend filter infrastructure: DateRangePicker, AccountFilter, useAnalyticsFilters hook, updated queries/hooks
+- [ ] 03-03-PLAN.md -- Rebuild analytics page with real data, comparison cards, top merchants table, and filter wiring
 
 ---
 
@@ -238,7 +239,7 @@ Plans:
 | ~~Account Sync via Plaid~~ | 0/TBD | Paused | — |
 | ~~Transaction Sync via Plaid~~ | 0/TBD | Paused | — |
 | 2. AI Categorization Enhancement | 3/3 | Complete | 2026-02-01 |
-| 3. Spending Analysis | 0/TBD | Not started | — |
+| 3. Spending Analysis | 0/3 | Not started | — |
 | 4. Recurring Transactions | 0/TBD | Not started | — |
 | 5. Net Worth Tracking | 0/TBD | Not started | — |
 | 6. Investment Portfolio | 0/TBD | Not started | — |
@@ -247,4 +248,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-02-01 -- Phase 2 complete: 3 plans executed, goal verified*
+*Last updated: 2026-02-01 -- Phase 3 planned: 3 plans in 3 waves*
