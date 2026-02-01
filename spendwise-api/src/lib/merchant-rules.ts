@@ -1,12 +1,43 @@
 import { redis } from './redis';
 import { cleanMerchantName, generateMerchantFingerprint } from './parsers/merchant-cleaner';
 
+export async function applyMerchantRuleRetroactively(
+  prisma: any,
+  userId: string,
+  merchantPattern: string,
+  category: string,
+  merchantDisplay: string
+): Promise<number> {
+  try {
+    // Update all transactions from this user with matching merchant
+    // that were NOT manually categorized (preserve user intent)
+    const result = await prisma.transaction.updateMany({
+      where: {
+        userId,
+        categorySource: { notIn: ['manual'] },
+        OR: [
+          { merchant: { contains: merchantPattern, mode: 'insensitive' } },
+        ],
+      },
+      data: {
+        category,
+        categorySource: 'rule',
+        categoryConfidence: 100,
+      },
+    });
+    return result.count;
+  } catch (error) {
+    console.error('Retroactive re-categorization failed:', error);
+    return 0;
+  }
+}
+
 export async function createOrUpdateMerchantRule(
   prisma: any,
   userId: string,
   rawMerchant: string,
   category: string
-) {
+): Promise<{ rule: any; retroactiveCount: number } | null> {
   const { displayName, normalizedKey } = cleanMerchantName(rawMerchant);
 
   if (!normalizedKey) return null;
@@ -30,6 +61,14 @@ export async function createOrUpdateMerchantRule(
     },
   });
 
+  // Apply rule retroactively to existing transactions
+  const retroCount = await applyMerchantRuleRetroactively(
+    prisma, userId, normalizedKey, category, displayName
+  );
+  if (retroCount > 0) {
+    console.log(`Retroactively updated ${retroCount} transactions for merchant "${displayName}"`);
+  }
+
   // Invalidate Redis cache for this merchant
   const cacheKey = generateMerchantFingerprint(rawMerchant);
   try {
@@ -38,7 +77,7 @@ export async function createOrUpdateMerchantRule(
     // Cache invalidation failure is non-critical
   }
 
-  return rule;
+  return { rule, retroactiveCount: retroCount };
 }
 
 export async function getMerchantRules(

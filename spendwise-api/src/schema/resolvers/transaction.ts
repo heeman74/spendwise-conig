@@ -255,7 +255,10 @@ export const transactionResolvers = {
         const merchant = input.merchant || existing.merchant;
         if (merchant) {
           try {
-            await createOrUpdateMerchantRule(context.prisma, user.id, merchant, input.category);
+            const ruleResult = await createOrUpdateMerchantRule(context.prisma, user.id, merchant, input.category);
+            if (ruleResult && ruleResult.retroactiveCount > 0) {
+              console.log(`Rule applied retroactively to ${ruleResult.retroactiveCount} transactions`);
+            }
           } catch (error) {
             console.error('Failed to save merchant rule:', error);
           }
@@ -279,11 +282,11 @@ export const transactionResolvers = {
       context: Context
     ) => {
       const user = requireAuth(context);
-      const rule = await createOrUpdateMerchantRule(context.prisma, user.id, merchant, category);
-      if (!rule) {
+      const result = await createOrUpdateMerchantRule(context.prisma, user.id, merchant, category);
+      if (!result) {
         throw new Error('Failed to save merchant rule: invalid merchant name');
       }
-      return rule;
+      return result.rule;
     },
 
     deleteMerchantRule: async (
