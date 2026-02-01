@@ -36,8 +36,8 @@ export const GET_DASHBOARD_STATS = gql`
 
 export const GET_ANALYTICS = gql`
   ${CATEGORY_AMOUNT_FRAGMENT}
-  query GetAnalytics($period: Period) {
-    analytics(period: $period) {
+  query GetAnalytics($period: Period, $dateRange: DateRangeInput, $accountIds: [ID!]) {
+    analytics(period: $period, dateRange: $dateRange, accountIds: $accountIds) {
       period
       dateRange {
         start
@@ -79,9 +79,24 @@ export const GET_ANALYTICS = gql`
 
 export const GET_SPENDING_BY_CATEGORY = gql`
   ${CATEGORY_AMOUNT_FRAGMENT}
-  query GetSpendingByCategory($period: Period) {
-    spendingByCategory(period: $period) {
+  query GetSpendingByCategory($period: Period, $dateRange: DateRangeInput, $accountIds: [ID!]) {
+    spendingByCategory(period: $period, dateRange: $dateRange, accountIds: $accountIds) {
       ...CategoryAmountFields
+    }
+  }
+`;
+
+export const GET_TOP_MERCHANTS = gql`
+  ${CATEGORY_AMOUNT_FRAGMENT}
+  query GetTopMerchants($dateRange: DateRangeInput, $accountIds: [ID!], $limit: Int) {
+    topMerchants(dateRange: $dateRange, accountIds: $accountIds, limit: $limit) {
+      merchant
+      totalAmount
+      transactionCount
+      averageAmount
+      categoryBreakdown {
+        ...CategoryAmountFields
+      }
     }
   }
 `;

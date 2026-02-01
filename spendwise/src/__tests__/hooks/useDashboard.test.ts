@@ -118,12 +118,51 @@ describe('useDashboard hooks', () => {
         refetch: jest.fn(),
       });
 
-      renderHook(() => useAnalytics('YEAR'));
+      renderHook(() => useAnalytics({ period: 'YEAR' }));
 
       expect(useQuery).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           variables: { period: 'YEAR' },
+        })
+      );
+    });
+
+    it('should fetch analytics with date range', () => {
+      (useQuery as jest.Mock).mockReturnValue({
+        data: { analytics: {} },
+        loading: false,
+        error: undefined,
+        refetch: jest.fn(),
+      });
+
+      const from = new Date('2024-01-01');
+      const to = new Date('2024-01-31');
+
+      renderHook(() => useAnalytics({ dateRange: { from, to } }));
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          variables: { dateRange: { start: from, end: to } },
+        })
+      );
+    });
+
+    it('should fetch analytics with account filter', () => {
+      (useQuery as jest.Mock).mockReturnValue({
+        data: { analytics: {} },
+        loading: false,
+        error: undefined,
+        refetch: jest.fn(),
+      });
+
+      renderHook(() => useAnalytics({ period: 'MONTH', accountIds: ['acc1', 'acc2'] }));
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          variables: { period: 'MONTH', accountIds: ['acc1', 'acc2'] },
         })
       );
     });
