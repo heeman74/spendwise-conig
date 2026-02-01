@@ -60,3 +60,19 @@ export const GET_CATEGORIES = gql`
     categories
   }
 `;
+
+export const GET_TRANSACTIONS_NEEDING_REVIEW = gql`
+  ${TRANSACTION_FRAGMENT}
+  ${ACCOUNT_FRAGMENT}
+  query GetTransactionsNeedingReview($limit: Int, $offset: Int) {
+    transactionsNeedingReview(limit: $limit, offset: $offset) {
+      transactions {
+        ...TransactionFields
+        account {
+          ...AccountFields
+        }
+      }
+      totalCount
+    }
+  }
+`;

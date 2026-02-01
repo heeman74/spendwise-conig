@@ -10,9 +10,10 @@ interface TransactionItemProps {
   transaction: Transaction;
   onEdit?: (transaction: Transaction) => void;
   onDelete?: (id: string) => void;
+  showConfidenceDetail?: boolean;
 }
 
-export default function TransactionItem({ transaction, onEdit, onDelete }: TransactionItemProps) {
+export default function TransactionItem({ transaction, onEdit, onDelete, showConfidenceDetail }: TransactionItemProps) {
   const typeVariant = {
     INCOME: 'success' as const,
     EXPENSE: 'danger' as const,
@@ -72,6 +73,11 @@ export default function TransactionItem({ transaction, onEdit, onDelete }: Trans
               className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0"
               title={`AI confidence: ${transaction.categoryConfidence}%`}
             />
+          )}
+          {showConfidenceDetail && transaction.categoryConfidence != null && (
+            <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">
+              {transaction.categoryConfidence}% ({transaction.categorySource})
+            </span>
           )}
         </div>
       </TableCell>

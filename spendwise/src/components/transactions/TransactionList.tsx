@@ -20,6 +20,7 @@ interface TransactionListProps {
   onDelete?: (id: string) => void;
   sort?: SortState;
   onSort?: (sort: SortState) => void;
+  showConfidenceDetail?: boolean;
 }
 
 function SortIcon({ field, sort }: { field: SortField; sort?: SortState }) {
@@ -54,6 +55,7 @@ export default function TransactionList({
   onDelete,
   sort,
   onSort,
+  showConfidenceDetail,
 }: TransactionListProps) {
   if (isLoading) {
     return (
@@ -145,6 +147,7 @@ export default function TransactionList({
             transaction={transaction}
             onEdit={onEdit}
             onDelete={onDelete}
+            showConfidenceDetail={showConfidenceDetail}
           />
         ))}
       </TableBody>

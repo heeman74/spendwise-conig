@@ -6,6 +6,7 @@ import {
   GET_TRANSACTIONS,
   GET_RECENT_TRANSACTIONS,
   GET_CATEGORIES,
+  GET_TRANSACTIONS_NEEDING_REVIEW,
   CREATE_TRANSACTION,
   UPDATE_TRANSACTION,
   DELETE_TRANSACTION,
@@ -131,6 +132,21 @@ export function useCategories() {
     categories: data?.categories ?? [],
     loading,
     error,
+  };
+}
+
+export function useTransactionsNeedingReview(limit = 20) {
+  const { data, loading, error, refetch } = useQuery<any>(GET_TRANSACTIONS_NEEDING_REVIEW, {
+    variables: { limit, offset: 0 },
+    fetchPolicy: 'cache-and-network',
+  });
+
+  return {
+    transactions: data?.transactionsNeedingReview?.transactions ?? [],
+    totalCount: data?.transactionsNeedingReview?.totalCount ?? 0,
+    loading,
+    error,
+    refetch,
   };
 }
 

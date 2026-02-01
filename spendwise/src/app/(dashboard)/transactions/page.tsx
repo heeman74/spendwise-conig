@@ -11,6 +11,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import {
   useTransactions,
+  useTransactionsNeedingReview,
   useCreateTransaction,
   useUpdateTransaction,
   useDeleteTransaction,
@@ -63,6 +64,7 @@ export default function TransactionsPage() {
   const [sort, setSort] = useState<SortState>({ field: 'DATE', order: 'DESC' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'review'>('all');
 
   const { accounts } = useAccounts();
 
@@ -88,6 +90,13 @@ export default function TransactionsPage() {
     DEFAULT_PAGINATION,
     sortInput,
   );
+
+  const {
+    transactions: reviewTransactions,
+    totalCount: reviewCount,
+    loading: reviewLoading,
+    refetch: refetchReview,
+  } = useTransactionsNeedingReview(50);
 
   const { createTransaction } = useCreateTransaction();
   const { updateTransaction } = useUpdateTransaction();
@@ -173,6 +182,8 @@ export default function TransactionsPage() {
           description: formData.description || undefined,
           date: formData.date,
         });
+        // Refetch review list since correcting a category may remove it from review
+        refetchReview();
       } else {
         await createTransaction({
           amount: parseFloat(formData.amount),
@@ -259,17 +270,49 @@ export default function TransactionsPage() {
       </div>
 
       {/* Filters */}
-      <Card>
-        <TransactionFilters
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          onClear={handleClearFilters}
-          accounts={accountOptions}
-        />
-      </Card>
+      {activeTab === 'all' && (
+        <Card>
+          <TransactionFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onClear={handleClearFilters}
+            accounts={accountOptions}
+          />
+        </Card>
+      )}
 
-      {/* Transactions list */}
-      <Card padding="none">
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab('all')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            activeTab === 'all'
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          All Transactions
+        </button>
+        <button
+          onClick={() => setActiveTab('review')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+            activeTab === 'review'
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          Needs Review
+          {reviewCount > 0 && (
+            <span className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-semibold px-2 py-0.5 rounded-full">
+              {reviewCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* All Transactions list */}
+      {activeTab === 'all' && (
+        <Card padding="none">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {pageInfo
@@ -293,7 +336,41 @@ export default function TransactionsPage() {
             <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading more...</span>
           </div>
         )}
-      </Card>
+        </Card>
+      )}
+
+      {/* Needs Review list */}
+      {activeTab === 'review' && (
+        <Card padding="none">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {reviewCount} transaction{reviewCount !== 1 ? 's' : ''} with low AI confidence need your review
+            </p>
+          </div>
+          {reviewLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner size="lg" />
+            </div>
+          ) : reviewTransactions.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">All caught up!</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                No transactions need review right now.
+              </p>
+            </div>
+          ) : (
+            <TransactionList
+              transactions={reviewTransactions}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              showConfidenceDetail
+            />
+          )}
+        </Card>
+      )}
 
       {/* Add/Edit Modal */}
       <Modal
