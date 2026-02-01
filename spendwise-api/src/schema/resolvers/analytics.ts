@@ -107,31 +107,50 @@ export const analyticsResolvers = {
 
     analytics: async (
       _: unknown,
-      { period = 'MONTH' }: { period?: Period },
+      {
+        period = 'MONTH',
+        dateRange: dateRangeArg,
+        accountIds
+      }: {
+        period?: Period;
+        dateRange?: { start: Date; end: Date };
+        accountIds?: string[]
+      },
       context: Context
     ) => {
       const user = requireAuth(context);
 
-      // Check cache
-      const cacheKey = `user:${user.id}:analytics:${period}`;
+      // Build cache key with all parameters
+      const cacheKey = `user:${user.id}:analytics:${period}:${dateRangeArg?.start?.toISOString() || ''}:${dateRangeArg?.end?.toISOString() || ''}:${accountIds?.sort().join(',') || ''}`;
       const cached = await getCache<Record<string, unknown>>(cacheKey);
       if (cached) return cached;
 
-      const dateRange = getDateRange(period);
+      const dateRange = dateRangeArg || getDateRange(period);
       const previousRange = getPreviousPeriodRange(period);
+
+      // Build where clause with optional filters
+      const whereClause: any = {
+        userId: user.id,
+        date: { gte: dateRange.start, lte: dateRange.end },
+      };
+      if (accountIds && accountIds.length > 0) {
+        whereClause.accountId = { in: accountIds };
+      }
+
+      const previousWhereClause: any = {
+        userId: user.id,
+        date: { gte: previousRange.start, lte: previousRange.end },
+      };
+      if (accountIds && accountIds.length > 0) {
+        previousWhereClause.accountId = { in: accountIds };
+      }
 
       const [transactions, previousTransactions] = await Promise.all([
         context.prisma.transaction.findMany({
-          where: {
-            userId: user.id,
-            date: { gte: dateRange.start, lte: dateRange.end },
-          },
+          where: whereClause,
         }),
         context.prisma.transaction.findMany({
-          where: {
-            userId: user.id,
-            date: { gte: previousRange.start, lte: previousRange.end },
-          },
+          where: previousWhereClause,
         }),
       ]);
 
@@ -172,9 +191,66 @@ export const analyticsResolvers = {
         }))
         .sort((a, b) => b.amount - a.amount);
 
-      // Calculate trends (simplified - could be enhanced for actual time series)
+      // Calculate trends - multi-month time series data
       const netSavings = totalIncome - totalExpenses;
       const previousSavings = previousIncome - previousExpenses;
+
+      // Determine trend window (6 months)
+      const trendEnd = dateRange.end;
+      const trendStart = new Date(trendEnd);
+      trendStart.setMonth(trendStart.getMonth() - 5); // 6 months total including current
+      trendStart.setDate(1); // Start of month
+      trendStart.setHours(0, 0, 0, 0);
+
+      // Fetch transactions for trend period
+      const trendWhereClause: any = {
+        userId: user.id,
+        date: { gte: trendStart, lte: trendEnd },
+      };
+      if (accountIds && accountIds.length > 0) {
+        trendWhereClause.accountId = { in: accountIds };
+      }
+
+      const trendTransactions = await context.prisma.transaction.findMany({
+        where: trendWhereClause,
+      });
+
+      // Group by month
+      const monthlyData: Record<string, { income: number; expenses: number }> = {};
+
+      trendTransactions.forEach((t) => {
+        const monthKey = t.date.getFullYear() + '-' + String(t.date.getMonth() + 1).padStart(2, '0');
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { income: 0, expenses: 0 };
+        }
+        const amount = parseDecimal(t.amount);
+        if (t.type === 'INCOME') {
+          monthlyData[monthKey].income += amount;
+        } else if (t.type === 'EXPENSE') {
+          monthlyData[monthKey].expenses += amount;
+        }
+      });
+
+      // Build arrays for all 6 months
+      const trendLabels: string[] = [];
+      const trendIncome: number[] = [];
+      const trendExpenses: number[] = [];
+      const trendSavings: number[] = [];
+
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      for (let i = 0; i < 6; i++) {
+        const monthDate = new Date(trendStart);
+        monthDate.setMonth(trendStart.getMonth() + i);
+        const monthKey = monthDate.getFullYear() + '-' + String(monthDate.getMonth() + 1).padStart(2, '0');
+        const monthLabel = monthNames[monthDate.getMonth()] + ' ' + monthDate.getFullYear();
+
+        trendLabels.push(monthLabel);
+        const data = monthlyData[monthKey] || { income: 0, expenses: 0 };
+        trendIncome.push(data.income);
+        trendExpenses.push(data.expenses);
+        trendSavings.push(data.income - data.expenses);
+      }
 
       const result = {
         period,
@@ -195,10 +271,10 @@ export const analyticsResolvers = {
         },
         categoryBreakdown,
         trends: {
-          labels: ['Current Period'],
-          income: [totalIncome],
-          expenses: [totalExpenses],
-          savings: [netSavings],
+          labels: trendLabels,
+          income: trendIncome,
+          expenses: trendExpenses,
+          savings: trendSavings,
         },
         comparison: {
           previousPeriod: {
@@ -236,19 +312,33 @@ export const analyticsResolvers = {
 
     spendingByCategory: async (
       _: unknown,
-      { period = 'MONTH' }: { period?: Period },
+      {
+        period = 'MONTH',
+        dateRange: dateRangeArg,
+        accountIds
+      }: {
+        period?: Period;
+        dateRange?: { start: Date; end: Date };
+        accountIds?: string[]
+      },
       context: Context
     ) => {
       const user = requireAuth(context);
 
-      const dateRange = getDateRange(period);
+      const dateRange = dateRangeArg || getDateRange(period);
+
+      // Build where clause with optional filters
+      const whereClause: any = {
+        userId: user.id,
+        type: 'EXPENSE',
+        date: { gte: dateRange.start, lte: dateRange.end },
+      };
+      if (accountIds && accountIds.length > 0) {
+        whereClause.accountId = { in: accountIds };
+      }
 
       const transactions = await context.prisma.transaction.findMany({
-        where: {
-          userId: user.id,
-          type: 'EXPENSE',
-          date: { gte: dateRange.start, lte: dateRange.end },
-        },
+        where: whereClause,
       });
 
       const totalExpenses = transactions.reduce(
@@ -273,6 +363,91 @@ export const analyticsResolvers = {
           transactionCount: data.count,
         }))
         .sort((a, b) => b.amount - a.amount);
+    },
+
+    topMerchants: async (
+      _: unknown,
+      {
+        dateRange: dateRangeArg,
+        accountIds,
+        limit = 10
+      }: {
+        dateRange?: { start: Date; end: Date };
+        accountIds?: string[];
+        limit?: number
+      },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      // Default to current month if no date range provided
+      const dateRange = dateRangeArg || getMonthRange();
+
+      // Build cache key with all parameters
+      const cacheKey = `user:${user.id}:topMerchants:${dateRange.start.toISOString()}:${dateRange.end.toISOString()}:${accountIds?.sort().join(',') || ''}:${limit}`;
+      const cached = await getCache<any[]>(cacheKey);
+      if (cached) return cached;
+
+      // Build where clause
+      const whereClause: any = {
+        userId: user.id,
+        type: 'EXPENSE',
+        merchant: { not: null },
+        date: { gte: dateRange.start, lte: dateRange.end },
+      };
+      if (accountIds && accountIds.length > 0) {
+        whereClause.accountId = { in: accountIds };
+      }
+
+      const transactions = await context.prisma.transaction.findMany({
+        where: whereClause,
+      });
+
+      // Aggregate by merchant
+      const merchantData: Record<string, {
+        totalAmount: number;
+        transactionCount: number;
+        categories: Record<string, number>;
+      }> = {};
+
+      transactions.forEach((t) => {
+        const merchant = t.merchant!;
+        if (!merchantData[merchant]) {
+          merchantData[merchant] = {
+            totalAmount: 0,
+            transactionCount: 0,
+            categories: {},
+          };
+        }
+        const amount = parseDecimal(t.amount);
+        merchantData[merchant].totalAmount += amount;
+        merchantData[merchant].transactionCount += 1;
+        merchantData[merchant].categories[t.category] =
+          (merchantData[merchant].categories[t.category] || 0) + amount;
+      });
+
+      // Build result
+      const result = Object.entries(merchantData)
+        .map(([merchant, data]) => ({
+          merchant,
+          totalAmount: data.totalAmount,
+          transactionCount: data.transactionCount,
+          averageAmount: data.transactionCount > 0 ? data.totalAmount / data.transactionCount : 0,
+          categoryBreakdown: Object.entries(data.categories).map(([category, amount]) => ({
+            category,
+            amount,
+            percentage: data.totalAmount > 0 ? (amount / data.totalAmount) * 100 : 0,
+            color: getCategoryColor(category),
+            transactionCount: transactions.filter(t => t.merchant === merchant && t.category === category).length,
+          })).sort((a, b) => b.amount - a.amount),
+        }))
+        .sort((a, b) => b.totalAmount - a.totalAmount)
+        .slice(0, limit);
+
+      // Cache for 15 minutes
+      await setCache(cacheKey, result, 900);
+
+      return result;
     },
   },
 
