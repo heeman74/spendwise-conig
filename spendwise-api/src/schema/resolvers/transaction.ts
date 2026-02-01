@@ -14,6 +14,7 @@ interface TransactionFilterInput {
   endDate?: Date;
   minAmount?: number;
   maxAmount?: number;
+  needsReview?: boolean;
 }
 
 interface TransactionSortInput {
@@ -82,6 +83,10 @@ export const transactionResolvers = {
         where.amount = {};
         if (args.filters.minAmount) where.amount.gte = args.filters.minAmount;
         if (args.filters.maxAmount) where.amount.lte = args.filters.maxAmount;
+      }
+      if (args.filters?.needsReview) {
+        where.categoryConfidence = { lt: 70 };
+        where.categorySource = { notIn: ['manual', 'rule'] };
       }
 
       // Build order by
@@ -170,6 +175,33 @@ export const transactionResolvers = {
     ) => {
       const user = requireAuth(context);
       return getMerchantRules(context.prisma, user.id, limit, offset);
+    },
+
+    transactionsNeedingReview: async (
+      _: unknown,
+      { limit = 20, offset = 0 }: { limit?: number; offset?: number },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      const where = {
+        userId: user.id,
+        categoryConfidence: { lt: 70 },
+        categorySource: { notIn: ['manual', 'rule'] },
+      };
+
+      const [transactions, totalCount] = await Promise.all([
+        context.prisma.transaction.findMany({
+          where,
+          orderBy: { date: 'desc' },
+          take: limit,
+          skip: offset,
+          include: { account: true },
+        }),
+        context.prisma.transaction.count({ where }),
+      ]);
+
+      return { transactions, totalCount };
     },
   },
 

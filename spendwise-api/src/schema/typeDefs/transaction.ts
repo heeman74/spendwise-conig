@@ -36,6 +36,7 @@ export const transactionTypeDefs = gql`
     endDate: DateTime
     minAmount: Decimal
     maxAmount: Decimal
+    needsReview: Boolean
   }
 
   input TransactionSortInput {
@@ -69,6 +70,11 @@ export const transactionTypeDefs = gql`
     date: DateTime
   }
 
+  type TransactionsNeedingReviewResult {
+    transactions: [Transaction!]!
+    totalCount: Int!
+  }
+
   extend type Query {
     transactions(
       pagination: PaginationInput
@@ -79,6 +85,7 @@ export const transactionTypeDefs = gql`
     recentTransactions(limit: Int = 5): [Transaction!]!
     categories: [String!]!
     merchantRules(limit: Int, offset: Int): [MerchantRule!]!
+    transactionsNeedingReview(limit: Int = 20, offset: Int = 0): TransactionsNeedingReviewResult!
   }
 
   extend type Mutation {
