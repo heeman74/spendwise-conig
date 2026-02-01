@@ -30,14 +30,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### AI Categorization
 
-- [ ] **CATG-01**: Transactions are automatically categorized using AI (LLM)
-- [ ] **CATG-02**: Plaid's built-in categories are used as initial categorization
-- [ ] **CATG-03**: AI refines categorization with merchant name, amount, and user history
-- [ ] **CATG-04**: User can manually override any transaction category
-- [ ] **CATG-05**: AI learns from user corrections and applies to future transactions
-- [ ] **CATG-06**: AI assigns confidence scores to categorizations
-- [ ] **CATG-07**: Low-confidence categorizations are flagged for user review
-- [ ] **CATG-08**: Merchant names are cleaned for readability (e.g., "AMZN*MARKETPLACE" → "Amazon")
+- [x] **CATG-01**: Transactions are automatically categorized using AI (LLM)
+- [x] **CATG-02**: Keyword categorizer serves as baseline (Plaid integration paused)
+- [x] **CATG-03**: AI refines categorization with merchant name, amount, and user history
+- [x] **CATG-04**: User can manually override any transaction category
+- [x] **CATG-05**: AI learns from user corrections and applies to future transactions
+- [x] **CATG-06**: AI assigns confidence scores to categorizations
+- [x] **CATG-07**: Low-confidence categorizations are flagged for user review
+- [x] **CATG-08**: Merchant names are cleaned for readability (e.g., "AMZN*MARKETPLACE" → "Amazon")
 
 ### Spending Analysis
 
@@ -143,14 +143,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYNC-03 | Phase 4 | Pending |
 | SYNC-04 | Phase 4 | Pending |
 | SYNC-05 | Phase 4 | Pending |
-| CATG-01 | Phase 5 | Pending |
-| CATG-02 | Phase 5 | Pending |
-| CATG-03 | Phase 5 | Pending |
-| CATG-04 | Phase 5 | Pending |
-| CATG-05 | Phase 5 | Pending |
-| CATG-06 | Phase 5 | Pending |
-| CATG-07 | Phase 5 | Pending |
-| CATG-08 | Phase 5 | Pending |
+| CATG-01 | Phase 2 | Complete |
+| CATG-02 | Phase 2 | Complete |
+| CATG-03 | Phase 2 | Complete |
+| CATG-04 | Phase 2 | Complete |
+| CATG-05 | Phase 2 | Complete |
+| CATG-06 | Phase 2 | Complete |
+| CATG-07 | Phase 2 | Complete |
+| CATG-08 | Phase 2 | Complete |
 | SPND-01 | Phase 6 | Pending |
 | SPND-02 | Phase 6 | Pending |
 | SPND-03 | Phase 6 | Pending |
@@ -183,4 +183,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 — Phase 1 complete (CONN-10 verified)*
+*Last updated: 2026-02-01 — Phase 2 complete (CATG-01 through CATG-08 verified)*
