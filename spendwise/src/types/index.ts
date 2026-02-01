@@ -77,6 +77,20 @@ export interface CategoryAmount {
   amount: number;
   percentage: number;
   color: string;
+  transactionCount?: number;
+}
+
+export interface MerchantStats {
+  merchant: string;
+  totalAmount: number;
+  transactionCount: number;
+  averageAmount: number;
+  categoryBreakdown: CategoryAmount[];
+}
+
+export interface AnalyticsFilters {
+  dateRange: { from: Date; to: Date };
+  accountIds: string[];
 }
 
 export interface TrendData {
