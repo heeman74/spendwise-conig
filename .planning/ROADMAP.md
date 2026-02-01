@@ -2,25 +2,27 @@
 
 ## Overview
 
-SpendWise transforms from a manual finance tracker into an automated, AI-powered financial planning tool. This roadmap delivers Plaid integration for real-time account connectivity, intelligent AI transaction categorization, comprehensive spending and investment analysis, goal-based financial advice, and a unified dashboard that shows users their complete financial picture in one place.
+SpendWise is a personal finance application powered by statement imports and AI. Users upload bank/credit card statements to automatically import transactions, which are then intelligently categorized. The roadmap builds on this statement-import foundation to deliver spending analysis, recurring transaction detection, net worth tracking, investment portfolio management, AI-powered financial planning, and a unified dashboard.
+
+Plaid integration code exists in the codebase (built in Phase 2) and is preserved for future activation, but all active development focuses on the statement-upload data flow.
 
 ## Phases
 
 - [x] **Phase 1: Database Schema & Encryption** - Extend schema for Plaid data and implement token encryption
-- [ ] **Phase 2: Plaid Integration Foundation** - Core connectivity infrastructure with Link flow
-- [ ] **Phase 3: Account Sync** - Sync bank, credit, savings, and investment accounts via Plaid
-- [ ] **Phase 4: Transaction Sync** - Daily automatic transaction sync with deduplication
-- [ ] **Phase 5: AI Categorization** - Intelligent transaction categorization with learning
-- [ ] **Phase 6: Spending Analysis** - Category breakdowns, trends, and merchant insights
-- [ ] **Phase 7: Recurring Transactions** - Subscription detection and recurring cost tracking
-- [ ] **Phase 8: Net Worth Tracking** - Total net worth with historical trends
-- [ ] **Phase 9: Investment Portfolio** - Holdings, allocation, performance, and gains/losses
-- [ ] **Phase 10: Financial Planning** - AI-powered insights and goal-based advice
-- [ ] **Phase 11: Unified Dashboard** - Complete financial picture in one view
+- [ ] ~~**Phase 2: Plaid Integration Foundation**~~ - **PAUSED** — Code built (backend SDK, webhooks, frontend Link flow) but not wired into UI pages
+- [ ] ~~**Phase 3: Account Sync via Plaid**~~ - **PAUSED** — Depends on Plaid UI integration
+- [ ] ~~**Phase 4: Transaction Sync via Plaid**~~ - **PAUSED** — Depends on Plaid account sync
+- [ ] **Phase 2: AI Categorization Enhancement** - Improve existing categorizer, add merchant rule learning, confidence tuning
+- [ ] **Phase 3: Spending Analysis** - Category breakdowns, trends, and merchant insights
+- [ ] **Phase 4: Recurring Transactions** - Subscription detection from imported transaction patterns
+- [ ] **Phase 5: Net Worth Tracking** - Total net worth with historical trends from statement imports
+- [ ] **Phase 6: Investment Portfolio** - Holdings tracking via statement imports or manual entry
+- [ ] **Phase 7: Financial Planning** - AI-powered insights and goal-based advice
+- [ ] **Phase 8: Unified Dashboard** - Complete financial picture in one view
 
 ## Phase Details
 
-### Phase 1: Database Schema & Encryption
+### Phase 1: Database Schema & Encryption — COMPLETE
 
 **Goal**: Database structure supports Plaid data with secure token storage
 
@@ -42,113 +44,67 @@ Plans:
 
 ---
 
-### Phase 2: Plaid Integration Foundation
+### Plaid Integration Foundation — PAUSED
 
 **Goal**: Users can connect financial institutions via Plaid Link
 
-**Depends on**: Phase 1
+**Status**: Backend SDK, webhook endpoint, and frontend Link component built. UI page integration (02-04, 02-05) never executed. Code preserved in codebase for future activation.
 
-**Requirements**: CONN-01, CONN-02, CONN-03, CONN-04, CONN-05, CONN-06, CONN-07, CONN-08, CONN-09
+**Reason paused**: Statement import system handles transaction ingestion. Plaid adds cost/complexity without proportional user value at this stage.
 
-**Success Criteria** (what must be TRUE):
-1. User can initiate Plaid Link flow from the frontend
-2. User can connect bank, credit card, investment, and savings accounts
-3. User can connect multiple institutions in one session or across sessions
-4. User can see connection status for each linked institution (connected, needs re-auth, disconnected)
-5. User can re-authenticate when a connection breaks
-6. User can unlink a connected institution and remove its data
-7. Manual accounts and Plaid-linked accounts coexist in the UI
+**Code locations preserved:**
+- Backend: `spendwise-api/src/lib/plaid-*`, `spendwise-api/src/routes/plaid-webhooks.ts`, `spendwise-api/src/schema/resolvers/plaid.ts`, `spendwise-api/src/schema/typeDefs/plaid.ts`
+- Frontend: `spendwise/src/components/plaid/`, `spendwise/src/hooks/usePlaid.ts`, `spendwise/src/graphql/queries/plaid.ts`, `spendwise/src/graphql/mutations/plaid.ts`
+- Prisma: PlaidItem model and Plaid fields on Account
 
-**Plans**: 5 plans
+Plans completed before pause:
+- [x] 02-01-PLAN.md -- Backend Plaid SDK client + GraphQL API
+- [x] 02-02-PLAN.md -- Backend webhook endpoint
+- [x] 02-03-PLAN.md -- Frontend Plaid Link flow with react-plaid-link
+- [ ] 02-04-PLAN.md -- Accounts page redesign (not executed)
+- [ ] 02-05-PLAN.md -- Settings page institution management (not executed)
 
-Plans:
-- [ ] 02-01-PLAN.md -- Backend Plaid SDK client + GraphQL API for all Plaid operations
-- [ ] 02-02-PLAN.md -- Backend webhook endpoint for Plaid connection status notifications
-- [ ] 02-03-PLAN.md -- Frontend Plaid Link flow with react-plaid-link + hooks + success modal
-- [ ] 02-04-PLAN.md -- Accounts page redesign with type grouping, balance summary, and connection status
-- [ ] 02-05-PLAN.md -- Settings page institution management with re-auth and unlink flows
+### Account Sync via Plaid — PAUSED
 
----
+**Status**: Not started. Depends on Plaid UI integration.
 
-### Phase 3: Account Sync
+### Transaction Sync via Plaid — PAUSED
 
-**Goal**: Account balances and metadata sync from connected institutions
-
-**Depends on**: Phase 2
-
-**Requirements**: (Enables transaction sync, no explicit requirements but foundational)
-
-**Success Criteria** (what must be TRUE):
-1. Account balances update when user manually triggers sync
-2. Account names and types match those from Plaid
-3. Account data persists in database with correct linking to PlaidItem
-4. Sync errors are logged and user is notified of connection issues
-
-**Plans**: TBD
-
-Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+**Status**: Not started. Depends on Plaid account sync.
 
 ---
 
-### Phase 4: Transaction Sync
-
-**Goal**: Transactions automatically sync daily from all connected accounts
-
-**Depends on**: Phase 3
-
-**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05
-
-**Success Criteria** (what must be TRUE):
-1. Transactions are automatically synced daily from all connected accounts
-2. User can trigger a manual sync for any connected account on demand
-3. Pending transactions appear in transaction list and update when they post
-4. Duplicate transactions are prevented through cursor-based syncing
-5. Each account shows sync status and last-updated timestamp
-6. Background worker processes sync jobs via BullMQ
-
-**Plans**: TBD
-
-Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
-- [ ] 04-03: TBD
-
----
-
-### Phase 5: AI Categorization
+### Phase 2: AI Categorization Enhancement
 
 **Goal**: Transactions are intelligently categorized with AI learning from user feedback
 
-**Depends on**: Phase 4
+**Depends on**: Phase 1 (existing statement import categorizer provides baseline)
 
 **Requirements**: CATG-01, CATG-02, CATG-03, CATG-04, CATG-05, CATG-06, CATG-07, CATG-08
 
 **Success Criteria** (what must be TRUE):
-1. Newly synced transactions are automatically categorized using AI (LLM)
-2. Plaid's built-in categories are used as initial categorization baseline
-3. AI refines categorization using merchant name, amount, and user's transaction history
-4. User can manually override any transaction category
-5. AI learns from user corrections and applies patterns to future transactions
-6. Each categorization includes a confidence score
-7. Low-confidence categorizations are flagged for user review
-8. Merchant names are cleaned for readability (e.g., "AMZN*MARKETPLACE" becomes "Amazon")
+1. Imported transactions are automatically categorized using AI (LLM)
+2. AI uses merchant name, amount, and user's transaction history to categorize
+3. User can manually override any transaction category
+4. AI learns from user corrections and applies patterns to future transactions
+5. Each categorization includes a confidence score
+6. Low-confidence categorizations are flagged for user review
+7. Merchant names are cleaned for readability (e.g., "AMZN*MARKETPLACE" becomes "Amazon")
 
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [ ] 05-03: TBD
+- [ ] 02-01-PLAN.md -- Shared category constants, zod install, Structured Outputs upgrade for AI categorizer
+- [ ] 02-02-PLAN.md -- User history context in AI prompt and retroactive re-categorization on merchant rule changes
+- [ ] 02-03-PLAN.md -- Needs Review GraphQL query and frontend review UI tab
 
 ---
 
-### Phase 6: Spending Analysis
+### Phase 3: Spending Analysis
 
 **Goal**: Users understand spending patterns through visual breakdowns and trends
 
-**Depends on**: Phase 5
+**Depends on**: Phase 2
 
 **Requirements**: SPND-01, SPND-02, SPND-03, SPND-04, SPND-05
 
@@ -162,36 +118,36 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 03-01: TBD
+- [ ] 03-02: TBD
 
 ---
 
-### Phase 7: Recurring Transactions
+### Phase 4: Recurring Transactions
 
 **Goal**: Users can identify and track recurring expenses and subscriptions
 
-**Depends on**: Phase 5
+**Depends on**: Phase 2
 
 **Requirements**: RECR-01, RECR-02, RECR-03
 
 **Success Criteria** (what must be TRUE):
-1. System automatically detects recurring transactions (subscriptions, bills, regular payments)
+1. System automatically detects recurring transactions (subscriptions, bills, regular payments) from imported data
 2. User can view a list of all recurring transactions with frequency and amount
 3. User can see total monthly recurring cost as a summary metric
 
 **Plans**: TBD
 
 Plans:
-- [ ] 07-01: TBD
+- [ ] 04-01: TBD
 
 ---
 
-### Phase 8: Net Worth Tracking
+### Phase 5: Net Worth Tracking
 
 **Goal**: Users can track total net worth across all accounts over time
 
-**Depends on**: Phase 3
+**Depends on**: Phase 1 (aggregates account balances from statement imports)
 
 **Requirements**: NWTH-01, NWTH-02, NWTH-03
 
@@ -203,15 +159,15 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 08-01: TBD
+- [ ] 05-01: TBD
 
 ---
 
-### Phase 9: Investment Portfolio
+### Phase 6: Investment Portfolio
 
 **Goal**: Users can view investment holdings with performance and allocation insights
 
-**Depends on**: Phase 3
+**Depends on**: Phase 1 (holdings tracked via statement imports or manual entry)
 
 **Requirements**: INVS-01, INVS-02, INVS-03, INVS-04, INVS-05
 
@@ -219,22 +175,22 @@ Plans:
 1. User can view all investment holdings with current values
 2. User can view asset allocation breakdown (stocks, bonds, ETFs, cash) as pie chart
 3. User can view portfolio performance including total return and period changes
-4. Holdings prices are refreshed daily via Plaid background sync
+4. Holdings data sourced from statement imports or manual entry
 5. User can see cost basis and unrealized gains/losses per holding
 
 **Plans**: TBD
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 06-01: TBD
+- [ ] 06-02: TBD
 
 ---
 
-### Phase 10: Financial Planning
+### Phase 7: Financial Planning
 
 **Goal**: Users receive personalized AI-powered financial insights and recommendations
 
-**Depends on**: Phase 6, Phase 8, Phase 9
+**Depends on**: Phase 3, Phase 5, Phase 6
 
 **Requirements**: PLAN-01, PLAN-02, PLAN-03, PLAN-04, PLAN-05
 
@@ -248,29 +204,28 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 07-01: TBD
+- [ ] 07-02: TBD
 
 ---
 
-### Phase 11: Unified Dashboard
+### Phase 8: Unified Dashboard
 
 **Goal**: Users see complete financial picture in one unified dashboard view
 
-**Depends on**: Phase 10
+**Depends on**: Phase 7
 
 **Requirements**: DASH-01, DASH-02, DASH-03
 
 **Success Criteria** (what must be TRUE):
 1. Dashboard shows net worth, spending breakdown, goals progress, and AI advice in unified view
 2. Dashboard data refreshes on page load using cached results for performance
-3. Dashboard displays account connection health status with indicators for issues
-4. All components integrate seamlessly without requiring navigation to separate pages
+3. All components integrate seamlessly without requiring navigation to separate pages
 
 **Plans**: TBD
 
 Plans:
-- [ ] 11-01: TBD
+- [ ] 08-01: TBD
 
 ---
 
@@ -278,18 +233,18 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Schema & Encryption | 2/2 | ✓ Complete | 2026-01-30 |
-| 2. Plaid Integration Foundation | 0/5 | Planned | - |
-| 3. Account Sync | 0/TBD | Not started | - |
-| 4. Transaction Sync | 0/TBD | Not started | - |
-| 5. AI Categorization | 0/TBD | Not started | - |
-| 6. Spending Analysis | 0/TBD | Not started | - |
-| 7. Recurring Transactions | 0/TBD | Not started | - |
-| 8. Net Worth Tracking | 0/TBD | Not started | - |
-| 9. Investment Portfolio | 0/TBD | Not started | - |
-| 10. Financial Planning | 0/TBD | Not started | - |
-| 11. Unified Dashboard | 0/TBD | Not started | - |
+| 1. Database Schema & Encryption | 2/2 | Complete | 2026-01-30 |
+| ~~Plaid Integration Foundation~~ | 3/5 | Paused | — |
+| ~~Account Sync via Plaid~~ | 0/TBD | Paused | — |
+| ~~Transaction Sync via Plaid~~ | 0/TBD | Paused | — |
+| 2. AI Categorization Enhancement | 0/3 | Not started | — |
+| 3. Spending Analysis | 0/TBD | Not started | — |
+| 4. Recurring Transactions | 0/TBD | Not started | — |
+| 5. Net Worth Tracking | 0/TBD | Not started | — |
+| 6. Investment Portfolio | 0/TBD | Not started | — |
+| 7. Financial Planning | 0/TBD | Not started | — |
+| 8. Unified Dashboard | 0/TBD | Not started | — |
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30 -- Phase 2 planned (5 plans in 3 waves)*
+*Last updated: 2026-02-01 -- Phase 2 planned: 3 plans in 2 waves*
