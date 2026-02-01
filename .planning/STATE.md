@@ -6,35 +6,35 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Users see their complete financial picture in one place — every account, every transaction imported from statements and automatically categorized — with AI-powered advice on how to save more and invest smarter based on their personal goals.
 
-**Current focus:** Phase 2 — AI Categorization Enhancement (next up)
+**Current focus:** Phase 2 — AI Categorization Enhancement
 
 ## Current Position
 
-Phase: 2 of 8 (AI Categorization Enhancement) — IN PROGRESS
-Plan: 2 of 3 complete
-Status: Phase 2 progressing - User history context and retroactive re-categorization complete
-Last activity: 2026-02-01 — Completed 02-02-PLAN.md (User history learning and retroactive updates)
+Phase: 2 of 8 (AI Categorization Enhancement) — COMPLETE
+Plan: 3 of 3 complete
+Status: Phase 2 complete - Transaction review UI and feedback loop wired
+Last activity: 2026-02-01 — Completed 02-03-PLAN.md (Transaction review UI)
 
-Progress: [███░░░░░░░] 16% (Phase 1 complete, Phase 2 plans 1-2 complete, 7 active phases remaining)
+Progress: [████░░░░░░] 20% (Phase 1 complete, Phase 2 complete, 6 active phases remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (2 Phase 1 + 3 Plaid before pause + 2 Phase 2)
-- Average duration: 5min
-- Total execution time: 0.58 hours
+- Total plans completed: 8 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2)
+- Average duration: 5min 12s
+- Total execution time: 0.66 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-database-schema-encryption | 2 | 8min | 4min |
-| 02-ai-categorization-enhancement | 2 | 13min 25s | 6min 42s |
+| 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (7min), 02-01 (6min), 02-03-Plaid (4min), 02-02-Plaid (3min), 02-01-Plaid (5min)
-- Trend: Phase 2 plans taking longer due to complex AI enhancements (Structured Outputs, user history learning)
+- Last 5 plans: 02-03 (4min 43s), 02-02 (7min), 02-01 (6min 25s), 02-03-Plaid (4min), 02-02-Plaid (3min)
+- Trend: Phase 2 faster on final plan (UI-only vs full-stack AI integration)
 
 *Updated after each plan completion*
 
@@ -45,6 +45,10 @@ Progress: [███░░░░░░░] 16% (Phase 1 complete, Phase 2 plans 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **70% confidence threshold for "needs review"** (02-03) — Matches existing amber dot indicator in TransactionItem for visual consistency
+- **Exclude manual and rule sources from review query** (02-03) — User has already confirmed these categorizations
+- **Refetch review list after transaction edit** (02-03) — Ensures corrected transactions disappear immediately from review tab
+- **Show confidence percentage and source in review tab** (02-03) — Helps users understand why transaction was flagged
 - **Top 50 merchant-category pattern limit** (02-02) — Balances personalization with prompt token limits (~500 tokens)
 - **Filter user history by categorySource 'manual' and 'rule'** (02-02) — Only deliberate user choices inform AI
 - **Preserve manual categorizations in retroactive updates** (02-02) — categorySource: 'manual' is sacred, never overwritten
@@ -73,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 17:20:08 UTC
-Stopped at: Completed 02-02-PLAN.md (User History Context and Retroactive Re-categorization)
+Last session: 2026-02-01 17:29:29 UTC
+Stopped at: Completed 02-03-PLAN.md (Transaction Review UI) - Phase 2 complete
 Resume file: None
