@@ -1,12 +1,24 @@
 import OpenAI from 'openai';
+import { zodResponseFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
 import { redis } from '../redis';
 import { cleanMerchantName, generateMerchantFingerprint } from '../parsers/merchant-cleaner';
 import { categorizeTransactionWithConfidence } from '../parsers/categorizer';
 import type { ParsedTransaction } from '../parsers/types';
-import { VALID_CATEGORIES } from '../constants';
+import { VALID_CATEGORIES, VALID_CATEGORIES_TUPLE } from '../constants';
 
 const CACHE_TTL = 30 * 24 * 60 * 60; // 30 days in seconds
 const BATCH_SIZE = 50;
+
+// Zod schema for OpenAI Structured Outputs
+const CategorizedResult = z.object({
+  results: z.array(z.object({
+    index: z.number().describe('The transaction index from the input batch'),
+    category: z.enum(VALID_CATEGORIES_TUPLE).describe('The transaction category'),
+    confidence: z.number().min(0).max(100).describe('Confidence score 0-100'),
+    cleanedMerchant: z.string().describe('Clean, readable merchant name'),
+  })),
+});
 
 export interface CategorizedTransaction extends ParsedTransaction {
   confidence: number;
@@ -161,16 +173,13 @@ export async function categorizeTransactionsAI(
           return `${batchIdx}|${merchant}|${txn.description || ''}|${txn.amount}|${txn.type}`;
         });
 
-        const response = await openai.chat.completions.create({
+        const response = await openai.beta.chat.completions.parse({
           model: 'gpt-4o-mini',
           temperature: 0.1,
-          response_format: { type: 'json_object' },
           messages: [
             {
               role: 'system',
               content: `You are a financial transaction categorizer. Categorize each transaction into exactly one of these categories: ${VALID_CATEGORIES.join(', ')}.
-
-Respond with JSON: { "results": [{ "index": <number>, "category": "<category>", "confidence": <0-100>, "cleanedMerchant": "<clean merchant name>" }] }
 
 Rules:
 - Use the merchant name as primary signal
@@ -183,51 +192,49 @@ Rules:
               content: `Categorize these transactions (format: index|merchant|description|amount|type):\n${batchItems.join('\n')}`,
             },
           ],
+          response_format: zodResponseFormat(CategorizedResult, 'categorization'),
         });
 
-        const content = response.choices[0]?.message?.content;
-        if (content) {
-          try {
-            const parsed = JSON.parse(content);
-            if (parsed.results && Array.isArray(parsed.results)) {
-              for (const result of parsed.results) {
-                const batchIdx = result.index;
-                if (batchIdx >= 0 && batchIdx < batchIndices.length) {
-                  const originalIdx = batchIndices[batchIdx];
-                  const category = VALID_CATEGORIES.includes(result.category)
-                    ? result.category
-                    : 'Other';
-                  const confidence = Math.min(100, Math.max(0, result.confidence || 50));
-                  const cleanedMerchant = result.cleanedMerchant || cleanedNames[originalIdx].displayName;
+        const message = response.choices[0]?.message;
+        if (message?.refusal) {
+          console.warn('AI refused to categorize batch:', message.refusal);
+          // Skip this batch - keyword fallback will handle these
+          continue;
+        }
 
-                  results[originalIdx] = {
-                    ...transactions[originalIdx],
-                    category,
-                    confidence,
-                    source: 'ai',
-                    cleanedMerchant,
-                  };
+        const parsed = message?.parsed;
+        if (parsed?.results) {
+          for (const result of parsed.results) {
+            const batchIdx = result.index;
+            if (batchIdx >= 0 && batchIdx < batchIndices.length) {
+              const originalIdx = batchIndices[batchIdx];
+              const confidence = Math.min(100, Math.max(0, result.confidence));
+              const cleanedMerchant = result.cleanedMerchant || cleanedNames[originalIdx].displayName;
 
-                  // Cache the result in Redis
-                  const cacheKey = generateMerchantFingerprint(
-                    transactions[originalIdx].merchant || transactions[originalIdx].description || ''
+              results[originalIdx] = {
+                ...transactions[originalIdx],
+                category: result.category,
+                confidence,
+                source: 'ai',
+                cleanedMerchant,
+              };
+
+              // Cache the result in Redis
+              const cacheKey = generateMerchantFingerprint(
+                transactions[originalIdx].merchant || transactions[originalIdx].description || ''
+              );
+              if (cacheKey !== 'merchant:cat:') {
+                try {
+                  await redis.setex(
+                    cacheKey,
+                    CACHE_TTL,
+                    JSON.stringify({ category: result.category, confidence, cleanedMerchant })
                   );
-                  if (cacheKey !== 'merchant:cat:') {
-                    try {
-                      await redis.setex(
-                        cacheKey,
-                        CACHE_TTL,
-                        JSON.stringify({ category, confidence, cleanedMerchant })
-                      );
-                    } catch {
-                      // Cache write failure is non-critical
-                    }
-                  }
+                } catch {
+                  // Cache write failure is non-critical
                 }
               }
             }
-          } catch (parseError) {
-            console.error('Failed to parse OpenAI response:', parseError);
           }
         }
       }
