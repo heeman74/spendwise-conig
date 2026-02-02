@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 6 of 8 (Investment Portfolio)
-Plan: 1 of 4 plans complete
+Plan: 3 of 4 plans complete
 Status: In progress
-Last activity: 2026-02-02 — Completed 06-01-PLAN.md (investment backend API)
+Last activity: 2026-02-02 — Completed 06-03-PLAN.md (portfolio page UI)
 
-Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 plan, 2.75 phases remaining)
+Progress: [████████░░] 69% (Phase 1-5 complete + 3 Phase 6 plans, 2.5 phases remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 1 Phase 6)
-- Average duration: 4min 4s
-- Total execution time: 1.57 hours
+- Total plans completed: 25 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 3 Phase 6)
+- Average duration: 3min 58s
+- Total execution time: 1.66 hours
 
 **By Phase:**
 
@@ -34,12 +34,12 @@ Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 p
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
 | 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
-| 06-investment-portfolio | 1 | 3min 29s | 3min 29s |
+| 06-investment-portfolio | 3 | 10min 55s | 3min 38s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 06-01 (3min 29s), 05-06 (1min 54s), 05-05 (1min 31s), 05-04 (2min 30s), 05-03 (5min 18s)
-- Trend: Backend data layer plans fast (under 4min) - resolvers follow established netWorth patterns
+- Last 5 plans: 06-03 (3min 43s), 06-02 (3min 43s), 06-01 (3min 29s), 05-06 (1min 54s), 05-05 (1min 31s)
+- Trend: Phase 6 consistent at ~3.5min per plan - both backend and frontend UI following established patterns
 
 *Updated after each plan completion*
 
@@ -50,6 +50,10 @@ Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 p
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Em dash for null cost basis in holdings table** (06-03) — Show "—" instead of $0 or N/A for holdings without cost basis, visually cleaner and semantically correct
+- **Default holdings table sort by value descending** (06-03) — institutionValue DESC shows largest holdings first without user action
+- **Stock chart icon for Investments sidebar** (06-03) — Differentiated from Net Worth icon for visual clarity
+- **Grid layout ratio for portfolio page** (06-03) — Asset allocation chart 1/3 width, holdings table 2/3 on desktop
 - **Return 0 for unrealized gains when costBasis is null** (06-01) — Graceful degradation for manual holdings without cost basis, still shows current value
 - **Normalize security types to standard categories** (06-01) — Handles variation in user-entered types (stock vs equity, ETF vs etf) for accurate asset allocation grouping
 - **15-minute cache TTL for portfolio queries** (06-01) — Balances data freshness with reduced database load for manual portfolios
@@ -136,5 +140,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 06-01-PLAN.md (investment backend API)
+Stopped at: Completed 06-03-PLAN.md (portfolio page UI)
 Resume file: None
