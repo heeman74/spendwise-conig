@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 6 of 8 (Investment Portfolio)
-Plan: 3 of 4 plans complete
-Status: In progress
-Last activity: 2026-02-02 — Completed 06-03-PLAN.md (portfolio page UI)
+Plan: 4 of 4 plans complete
+Status: Phase complete
+Last activity: 2026-02-02 — Completed 06-04-PLAN.md (dashboard portfolio widget)
 
-Progress: [████████░░] 69% (Phase 1-5 complete + 3 Phase 6 plans, 2.5 phases remaining)
+Progress: [████████░░] 70% (Phase 1-5 complete + Phase 6 complete, 2 phases remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 3 Phase 6)
-- Average duration: 3min 58s
-- Total execution time: 1.66 hours
+- Total plans completed: 26 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 4 Phase 6)
+- Average duration: 3min 57s
+- Total execution time: 1.72 hours
 
 **By Phase:**
 
@@ -34,12 +34,12 @@ Progress: [████████░░] 69% (Phase 1-5 complete + 3 Phase 6 p
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
 | 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
-| 06-investment-portfolio | 3 | 10min 55s | 3min 38s |
+| 06-investment-portfolio | 4 | 14min 55s | 3min 44s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 06-03 (3min 43s), 06-02 (3min 43s), 06-01 (3min 29s), 05-06 (1min 54s), 05-05 (1min 31s)
-- Trend: Phase 6 consistent at ~3.5min per plan - both backend and frontend UI following established patterns
+- Last 5 plans: 06-04 (4min), 06-03 (3min 43s), 06-02 (3min 43s), 06-01 (3min 29s), 05-06 (1min 54s)
+- Trend: Phase 6 complete - consistent ~3.5-4min per plan across backend API, frontend hooks, and UI components
 
 *Updated after each plan completion*
 
@@ -50,6 +50,10 @@ Progress: [████████░░] 69% (Phase 1-5 complete + 3 Phase 6 p
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **No sparkline for portfolio card** (06-04) — Portfolio lacks time-series history in Phase 6, shows static metrics appropriate for long-term investment tracking
+- **Show total return instead of monthly change** (06-04) — Portfolio displays "total return" reflecting long-term nature of investments
+- **Display holding count and account count** (06-04) — Provides portfolio diversification context at a glance on dashboard
+- **Stock chart icon for portfolio card** (06-04) — Different icon than NetWorthSummaryCard's trend line for visual distinction
 - **Em dash for null cost basis in holdings table** (06-03) — Show "—" instead of $0 or N/A for holdings without cost basis, visually cleaner and semantically correct
 - **Default holdings table sort by value descending** (06-03) — institutionValue DESC shows largest holdings first without user action
 - **Stock chart icon for Investments sidebar** (06-03) — Differentiated from Net Worth icon for visual clarity
@@ -140,5 +144,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 06-03-PLAN.md (portfolio page UI)
+Stopped at: Completed 06-04-PLAN.md (dashboard portfolio widget) - Phase 6 complete
 Resume file: None
