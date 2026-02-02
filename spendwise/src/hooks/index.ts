@@ -7,3 +7,4 @@ export * from './usePlaid';
 export * from './useStatementImport';
 export * from './useRecurring';
 export * from './useNetWorth';
+export * from './usePortfolio';
