@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useSelector } from 'react-redux';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
@@ -49,9 +49,17 @@ export default function NetWorthSummaryCard() {
       return [];
     }
 
-    return [...netWorth.history]
+    const sorted = [...netWorth.history]
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .map((item) => ({ value: item.value }));
+
+    // Pad sparse data for visual density
+    if (sorted.length === 1) {
+      // Duplicate single point to draw a flat line
+      return [sorted[0], sorted[0]];
+    }
+
+    return sorted;
   }, [netWorth]);
 
   // Loading state
@@ -207,16 +215,23 @@ export default function NetWorthSummaryCard() {
           {sparklineData.length > 0 && (
             <div className="h-[60px] -mx-2">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sparklineData}>
-                  <Line
+                <AreaChart data={sparklineData}>
+                  <defs>
+                    <linearGradient id="sparklineGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={sparklineColor} stopOpacity={0.2} />
+                      <stop offset="100%" stopColor={sparklineColor} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area
                     type="monotone"
                     dataKey="value"
                     stroke={sparklineColor}
                     strokeWidth={2}
-                    dot={false}
+                    fill="url(#sparklineGradient)"
+                    dot={sparklineData.length <= 3 ? { r: 2, fill: sparklineColor } : false}
                     isAnimationActive={false}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           )}
