@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 5 of 8 (Net Worth Tracking) — COMPLETE with gap closure
-Plan: 6 of 6 gap closure plans complete
-Status: Phase verified — 7/7 must-haves passed (3 original + 4 gap closure)
-Last activity: 2026-02-02 — Phase 5 complete, all gaps closed and verified
+Phase: 6 of 8 (Investment Portfolio)
+Plan: 1 of 4 plans complete (06-02 frontend data layer complete)
+Status: In progress — Wave 1 parallel execution (01-backend, 02-frontend running in parallel)
+Last activity: 2026-02-02 — Completed 06-02-PLAN.md (frontend portfolio data layer)
 
-Progress: [████████░░] 65% (Phase 1-5 complete with gap closure, 3 phases remaining)
+Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 plan, 2.75 phases remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure)
-- Average duration: 4min 13s
-- Total execution time: 1.55 hours
+- Total plans completed: 23 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 1 Phase 6)
+- Average duration: 4min 5s
+- Total execution time: 1.57 hours
 
 **By Phase:**
 
@@ -34,11 +34,12 @@ Progress: [████████░░] 65% (Phase 1-5 complete with gap clos
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
 | 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
+| 06-investment-portfolio | 1 | 1min 34s | 1min 34s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 05-06 (1min 54s), 05-05 (1min 31s), 05-04 (2min 30s), 05-03 (5min 18s), 05-02 (4min 1s)
-- Trend: Gap closure plans extremely fast (under 2min) - surgical fixes to UX issues
+- Last 5 plans: 06-02 (1min 34s), 05-06 (1min 54s), 05-05 (1min 31s), 05-04 (2min 30s), 05-03 (5min 18s)
+- Trend: Frontend data layer plans very fast (under 2min) - queries/mutations follow established patterns
 
 *Updated after each plan completion*
 
@@ -49,6 +50,9 @@ Progress: [████████░░] 65% (Phase 1-5 complete with gap clos
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Three separate queries instead of single mega-query** (06-02) — Enables flexible caching and selective refetching for portfolio, allocation, holdings
+- **Optional accountId filter on GET_HOLDINGS** (06-02) — Supports both full portfolio view and account-specific holdings views
+- **Mutation hooks refetch all three queries** (06-02) — Adding/updating holdings affects portfolio totals, allocation, and holdings list
 - **Backfill banner shows when < 3 data points** (05-06) — Changed from !hasHistory to < 3 points threshold, users with limited history see generation prompt
 - **Persistent subtle backfill link** (05-06) — Always visible below chart when hasAccounts, provides ongoing access after banner disappears
 - **Area chart with gradient for sparklines** (05-06) — Dashboard sparkline uses AreaChart with gradient fill for better visual recognition vs line charts
@@ -131,5 +135,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Phase 5 fully complete — 6/6 plans executed, 7/7 must-haves verified, all UAT gaps closed
+Stopped at: Completed 06-02-PLAN.md (frontend portfolio data layer)
 Resume file: None
