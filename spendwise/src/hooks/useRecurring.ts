@@ -64,7 +64,11 @@ export function useRecurringSummary() {
 
 export function useUpdateRecurring() {
   const [updateRecurringMutation, { loading, error }] = useMutation<any>(UPDATE_RECURRING, {
-    refetchQueries: ['GetRecurring', 'GetRecurringSummary'],
+    refetchQueries: [
+      { query: GET_RECURRING },
+      { query: GET_RECURRING_SUMMARY },
+    ],
+    awaitRefetchQueries: true,
   });
 
   const updateRecurring = async (id: string, input: Record<string, unknown>) => {
@@ -82,7 +86,11 @@ export function useUpdateRecurring() {
 
 export function useDismissRecurring() {
   const [dismissRecurringMutation, { loading, error }] = useMutation<any>(DISMISS_RECURRING, {
-    refetchQueries: ['GetRecurring', 'GetRecurringSummary'],
+    refetchQueries: [
+      { query: GET_RECURRING },
+      { query: GET_RECURRING_SUMMARY },
+    ],
+    awaitRefetchQueries: true,
   });
 
   const dismissRecurring = async (id: string) => {
@@ -100,7 +108,11 @@ export function useDismissRecurring() {
 
 export function useRestoreRecurring() {
   const [restoreRecurringMutation, { loading, error }] = useMutation<any>(RESTORE_RECURRING, {
-    refetchQueries: ['GetRecurring', 'GetRecurringSummary'],
+    refetchQueries: [
+      { query: GET_RECURRING },
+      { query: GET_RECURRING_SUMMARY },
+    ],
+    awaitRefetchQueries: true,
   });
 
   const restoreRecurring = async (id: string) => {
@@ -118,7 +130,11 @@ export function useRestoreRecurring() {
 
 export function useAddRecurring() {
   const [addRecurringMutation, { loading, error }] = useMutation<any>(ADD_RECURRING, {
-    refetchQueries: ['GetRecurring', 'GetRecurringSummary'],
+    refetchQueries: [
+      { query: GET_RECURRING },
+      { query: GET_RECURRING_SUMMARY },
+    ],
+    awaitRefetchQueries: true,
   });
 
   const addRecurring = async (input: {
