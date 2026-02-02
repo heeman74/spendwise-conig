@@ -6,23 +6,23 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Users see their complete financial picture in one place — every account, every transaction imported from statements and automatically categorized — with AI-powered advice on how to save more and invest smarter based on their personal goals.
 
-**Current focus:** Phase 3 complete — ready for Phase 4
+**Current focus:** Phase 4 in progress — Recurring Transactions
 
 ## Current Position
 
-Phase: 3 of 8 (Spending Analysis) — COMPLETE
-Plan: 3 of 3 complete
-Status: Phase verified — 8/8 must-haves passed
-Last activity: 2026-02-01 — Phase 3 complete (all plans executed and verified)
+Phase: 4 of 8 (Recurring Transactions) — IN PROGRESS
+Plan: 1 of 3 complete
+Status: Detection algorithm complete, GraphQL integration next
+Last activity: 2026-02-02 — Completed 04-01-PLAN.md (detection algorithm)
 
-Progress: [█████░░░░░] 33% (Phase 1 complete, Phase 2 complete, Phase 3 complete, 5 active phases remaining)
+Progress: [█████▓░░░░] 35% (Phase 1 complete, Phase 2 complete, Phase 3 complete, Phase 4 started: 1/3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3)
-- Average duration: 4min 45s
-- Total execution time: 0.87 hours
+- Total plans completed: 12 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 1 Phase 4)
+- Average duration: 4min 50s
+- Total execution time: 0.99 hours
 
 **By Phase:**
 
@@ -31,11 +31,12 @@ Progress: [█████░░░░░] 33% (Phase 1 complete, Phase 2 comple
 | 01-database-schema-encryption | 2 | 8min | 4min |
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
+| 04-recurring-transactions | 1 | 7min 7s | 7min 7s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (3min 15s), 03-02 (4min 1s), 03-01 (4min), 02-03 (4min 43s), 02-02 (7min)
-- Trend: Phase 3 showing exceptional speed (3-4min), visualization work very efficient
+- Last 5 plans: 04-01 (7min 7s), 03-03 (3min 15s), 03-02 (4min 1s), 03-01 (4min), 02-03 (4min 43s)
+- Trend: TDD plan (04-01) slightly slower due to test-first approach, but still fast
 
 *Updated after each plan completion*
 
@@ -46,6 +47,13 @@ Progress: [█████░░░░░] 33% (Phase 1 complete, Phase 2 comple
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **10% amount tolerance for recurring pattern grouping** (04-01) — Allows subscriptions with slight price changes to group as same pattern
+- **20% interval variance allowed for pattern consistency** (04-01) — Handles natural billing date variance (28-31 days monthly)
+- **Minimum 3 transactions required for recurring pattern** (04-01) — Prevents false positives from coincidental timing
+- **Habitual spending threshold >10/month + >20% variance** (04-01) — Excludes coffee shops, gas stations from recurring detection
+- **POSSIBLY_CANCELLED after 2x expected interval** (04-01) — Flags stale subscriptions instead of predicting indefinitely
+- **QUARTERLY frequency instead of SEMI_MONTHLY** (04-01) — Research showed quarterly bills more common than semi-monthly
+- **Compound unique [userId, merchantName, frequency]** (04-01) — Enables upsert pattern for recurring detection updates
 - **Section-level loading states** (03-03) — Each section shows independent loading instead of full-page loader for better UX
 - **Comparison color coding logic** (03-03) — Expenses UP = red (bad), income UP = green (good), with directional arrows
 - **Empty state actionable guidance** (03-03) — Prompts user to expand filters when no data found
@@ -90,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: Phase 3 complete — all 3 plans executed and verified
+Last session: 2026-02-02
+Stopped at: Completed 04-01-PLAN.md — detection algorithm ready for GraphQL integration
 Resume file: None
