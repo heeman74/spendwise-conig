@@ -8,6 +8,11 @@ export const CONFIRM_IMPORT = gql`
       accountId
       transactionsImported
       duplicatesSkipped
+      recurringPatternsDetected {
+        merchantName
+        frequency
+        averageAmount
+      }
     }
   }
 `;

@@ -42,9 +42,19 @@ export default function TransactionItem({ transaction, onEdit, onDelete, onMarkR
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {transaction.merchant || transaction.description || transaction.category}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {transaction.merchant || transaction.description || transaction.category}
+              </p>
+              {transaction.recurringInfo && (
+                <Badge
+                  size="sm"
+                  className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex-shrink-0"
+                >
+                  {transaction.recurringInfo.frequency.charAt(0) + transaction.recurringInfo.frequency.slice(1).toLowerCase()}
+                </Badge>
+              )}
+            </div>
             {transaction.description && transaction.merchant && (
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {transaction.description}

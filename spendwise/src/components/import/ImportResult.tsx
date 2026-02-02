@@ -2,12 +2,18 @@
 
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
+import { formatCurrency } from '@/lib/utils';
 
 interface ImportResultProps {
   result: {
     transactionsImported: number;
     duplicatesSkipped: number;
     accountId: string;
+    recurringPatternsDetected?: Array<{
+      merchantName: string;
+      frequency: string;
+      averageAmount: number;
+    }>;
   };
   onImportAnother: () => void;
 }
@@ -38,6 +44,26 @@ export default function ImportResult({ result, onImportAnother }: ImportResultPr
           </p>
         )}
       </div>
+
+      {result.recurringPatternsDetected && result.recurringPatternsDetected.length > 0 && (
+        <div className="mb-6 mx-auto max-w-sm">
+          <div className="rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 p-4">
+            <h4 className="text-sm font-medium text-purple-900 dark:text-purple-300 mb-2">
+              {result.recurringPatternsDetected.length} recurring pattern{result.recurringPatternsDetected.length !== 1 ? 's' : ''} detected
+            </h4>
+            <ul className="space-y-1.5">
+              {result.recurringPatternsDetected.map((pattern, i) => (
+                <li key={i} className="flex items-center justify-between text-xs text-purple-700 dark:text-purple-400">
+                  <span className="font-medium truncate mr-2">{pattern.merchantName}</span>
+                  <span className="flex-shrink-0">
+                    {pattern.frequency.charAt(0) + pattern.frequency.slice(1).toLowerCase()} · {formatCurrency(pattern.averageAmount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-center gap-3">
         <Link href="/transactions">

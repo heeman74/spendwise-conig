@@ -72,12 +72,19 @@ export const statementImportTypeDefs = gql`
     completedAt: DateTime
   }
 
+  type RecurringPatternResult {
+    merchantName: String!
+    frequency: String!
+    averageAmount: Float!
+  }
+
   type ConfirmImportResult {
     success: Boolean!
     message: String
     accountId: String
     transactionsImported: Int!
     duplicatesSkipped: Int!
+    recurringPatternsDetected: [RecurringPatternResult!]!
   }
 
   type DeleteImportResult {
@@ -100,6 +107,7 @@ export const statementImportTypeDefs = gql`
     newAccountInstitution: String
     skipDuplicates: Boolean
     categoryOverrides: [CategoryOverrideInput!]
+    recurringIndices: [Int!]
   }
 
   extend type Query {

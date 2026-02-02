@@ -25,6 +25,7 @@ interface ImportPreviewProps {
     newAccountInstitution?: string;
     skipDuplicates?: boolean;
     categoryOverrides?: Array<{ index: number; category: string }>;
+    recurringIndices?: number[];
   }) => void;
   onCancel: () => void;
   confirming: boolean;
@@ -52,6 +53,7 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [categoryOverrides, setCategoryOverrides] = useState<Record<number, string>>({});
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [recurringFlags, setRecurringFlags] = useState<Record<number, boolean>>({});
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [addingCategoryForIdx, setAddingCategoryForIdx] = useState<number | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -114,20 +116,25 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
       category,
     }));
 
+    const recurringIndices = Object.entries(recurringFlags)
+      .filter(([, flagged]) => flagged)
+      .map(([index]) => parseInt(index));
+
+    const shared = {
+      skipDuplicates,
+      categoryOverrides: overrides.length > 0 ? overrides : undefined,
+      recurringIndices: recurringIndices.length > 0 ? recurringIndices : undefined,
+    };
+
     if (accountMode === 'existing') {
-      onConfirm({
-        accountId: selectedAccountId,
-        skipDuplicates,
-        categoryOverrides: overrides.length > 0 ? overrides : undefined,
-      });
+      onConfirm({ accountId: selectedAccountId, ...shared });
     } else {
       onConfirm({
         createNewAccount: true,
         newAccountName: newAccountName || 'New Account',
         newAccountType,
         newAccountInstitution: newAccountInstitution || 'Unknown',
-        skipDuplicates,
-        categoryOverrides: overrides.length > 0 ? overrides : undefined,
+        ...shared,
       });
     }
   };
@@ -281,6 +288,7 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
                 <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Amount</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Category</th>
                 <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">Confidence</th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">Recurring</th>
                 <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">Status</th>
               </tr>
             </thead>
@@ -380,6 +388,19 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
                           {txn.categoryConfidence ?? 50}%
                         </span>
                       </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    {!txn.isDuplicate && (
+                      <input
+                        type="checkbox"
+                        checked={!!recurringFlags[idx]}
+                        onChange={(e) =>
+                          setRecurringFlags((prev) => ({ ...prev, [idx]: e.target.checked }))
+                        }
+                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        title="Mark as recurring"
+                      />
                     )}
                   </td>
                   <td className="px-4 py-2 text-center">

@@ -267,8 +267,94 @@ export const statementImportResolvers = {
           },
         });
 
+        // Handle manually flagged recurring transactions
+        if (input.recurringIndices && input.recurringIndices.length > 0 && toImport.length > 0) {
+          try {
+            // Look up the just-created transactions for this import
+            const createdTransactions = await ctx.prisma.transaction.findMany({
+              where: { importId: input.importId, userId: ctx.user!.id },
+              orderBy: { date: 'asc' },
+              select: { id: true, merchant: true, amount: true, category: true, date: true, type: true },
+            });
+
+            // Map original toImport indices to created transactions
+            // toImport preserves order, and createMany preserves insertion order
+            const flaggedByMerchant = new Map<string, {
+              ids: string[];
+              amounts: number[];
+              category: string;
+              dates: Date[];
+              type: string;
+            }>();
+
+            for (const idx of input.recurringIndices) {
+              if (idx < 0 || idx >= toImport.length || idx >= createdTransactions.length) continue;
+              const txn = createdTransactions[idx];
+              const merchantName = txn.merchant || 'Unknown';
+              const existing = flaggedByMerchant.get(merchantName);
+              if (existing) {
+                existing.ids.push(txn.id);
+                existing.amounts.push(parseFloat(txn.amount.toString()));
+                existing.dates.push(txn.date);
+              } else {
+                flaggedByMerchant.set(merchantName, {
+                  ids: [txn.id],
+                  amounts: [parseFloat(txn.amount.toString())],
+                  category: txn.category,
+                  dates: [txn.date],
+                  type: txn.type,
+                });
+              }
+            }
+
+            for (const [merchantName, data] of flaggedByMerchant) {
+              const avg = data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length;
+              const sortedDates = data.dates.sort((a, b) => a.getTime() - b.getTime());
+              const firstDate = sortedDates[0];
+              const lastDate = sortedDates[sortedDates.length - 1];
+
+              await ctx.prisma.recurringTransaction.upsert({
+                where: {
+                  userId_merchantName_frequency: {
+                    userId: ctx.user!.id,
+                    merchantName,
+                    frequency: 'MONTHLY',
+                  },
+                },
+                create: {
+                  userId: ctx.user!.id,
+                  plaidStreamId: require('crypto').randomUUID(),
+                  description: `${merchantName} (manually flagged)`,
+                  merchantName,
+                  category: data.category,
+                  frequency: 'MONTHLY',
+                  isActive: true,
+                  isDismissed: false,
+                  status: 'ACTIVE',
+                  lastAmount: data.amounts[data.amounts.length - 1],
+                  averageAmount: avg,
+                  lastDate,
+                  firstDate,
+                  transactionIds: data.ids,
+                },
+                update: {
+                  lastAmount: data.amounts[data.amounts.length - 1],
+                  averageAmount: avg,
+                  lastDate,
+                  transactionIds: { push: data.ids },
+                  isActive: true,
+                  isDismissed: false,
+                },
+              });
+            }
+          } catch (recurringError) {
+            console.error('Manual recurring flagging failed (non-blocking):', recurringError);
+          }
+        }
+
         // Trigger recurring transaction detection (non-blocking)
         // Detection analyzes full transaction history, not just this import
+        let recurringPatternsDetected: Array<{ merchantName: string; frequency: string; averageAmount: number }> = [];
         try {
           const allTransactions = await ctx.prisma.transaction.findMany({
             where: { userId: ctx.user!.id },
@@ -332,6 +418,12 @@ export const statementImportResolvers = {
               },
             });
           }
+
+          recurringPatternsDetected = patterns.map((p) => ({
+            merchantName: p.merchantName,
+            frequency: p.frequency,
+            averageAmount: parseFloat(p.averageAmount.toString()),
+          }));
         } catch (detectError) {
           // Non-blocking: log but don't fail the import
           console.error('Recurring detection failed (non-blocking):', detectError);
@@ -346,6 +438,7 @@ export const statementImportResolvers = {
           accountId,
           transactionsImported: toImport.length,
           duplicatesSkipped,
+          recurringPatternsDetected,
         };
       } catch (error: any) {
         // Revert status on error

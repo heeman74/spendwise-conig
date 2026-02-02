@@ -109,6 +109,7 @@ export function useConfirmImport() {
     newAccountInstitution?: string;
     skipDuplicates?: boolean;
     categoryOverrides?: Array<{ index: number; category: string }>;
+    recurringIndices?: number[];
   }) => {
     const { data } = await confirmMutation({ variables: { input } });
     return data?.confirmImport;

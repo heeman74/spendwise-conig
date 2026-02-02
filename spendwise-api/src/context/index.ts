@@ -7,6 +7,7 @@ export interface Context {
   prisma: typeof prisma;
   redis: Redis;
   user: AuthUser | null;
+  _recurringLookup?: Map<string, { frequency: string; merchantName: string }>;
 }
 
 interface ContextParams {

@@ -1,6 +1,11 @@
 import { gql } from 'graphql-tag';
 
 export const transactionTypeDefs = gql`
+  type RecurringInfo {
+    frequency: String!
+    merchantName: String!
+  }
+
   type Transaction {
     id: ID!
     userId: String!
@@ -14,6 +19,7 @@ export const transactionTypeDefs = gql`
     date: DateTime!
     categoryConfidence: Int
     categorySource: String
+    recurringInfo: RecurringInfo
     createdAt: DateTime!
   }
 

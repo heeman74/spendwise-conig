@@ -367,5 +367,47 @@ export const transactionResolvers = {
     amount: (parent: { amount: unknown }) => {
       return parseDecimal(parent.amount as number);
     },
+
+    recurringInfo: async (
+      parent: { id: string; userId: string },
+      _args: unknown,
+      context: Context
+    ) => {
+      if (!context.user) return null;
+
+      // Lazy per-request cache: build the lookup map once, reuse for all transactions
+      if (!context._recurringLookup) {
+        const recurringRecords = await context.prisma.recurringTransaction.findMany({
+          where: {
+            userId: context.user.id,
+            isActive: true,
+            isDismissed: false,
+            merchantName: { not: null },
+          },
+          select: {
+            frequency: true,
+            merchantName: true,
+            transactionIds: true,
+          },
+        });
+
+        const lookup = new Map<string, { frequency: string; merchantName: string }>();
+        for (const record of recurringRecords) {
+          if (!record.merchantName) continue;
+          const txIds = Array.isArray(record.transactionIds)
+            ? record.transactionIds as string[]
+            : [];
+          for (const txId of txIds) {
+            lookup.set(txId, {
+              frequency: record.frequency,
+              merchantName: record.merchantName,
+            });
+          }
+        }
+        context._recurringLookup = lookup;
+      }
+
+      return context._recurringLookup.get(parent.id) || null;
+    },
   },
 };

@@ -11,6 +11,10 @@ export const TRANSACTION_FRAGMENT = gql`
     date
     categoryConfidence
     categorySource
+    recurringInfo {
+      frequency
+      merchantName
+    }
     createdAt
     accountId
   }

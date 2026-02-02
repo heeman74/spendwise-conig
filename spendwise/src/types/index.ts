@@ -24,6 +24,11 @@ export interface Account {
   updatedAt: Date;
 }
 
+export interface RecurringInfo {
+  frequency: string;
+  merchantName: string;
+}
+
 export interface Transaction {
   id: string;
   userId: string;
@@ -36,6 +41,7 @@ export interface Transaction {
   date: Date;
   categoryConfidence?: number | null;
   categorySource?: string | null;
+  recurringInfo?: RecurringInfo | null;
   createdAt: Date;
   account?: Account;
 }
