@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 4 of 8 (Recurring Transactions) — IN PROGRESS
-Plan: 1 of 3 complete
-Status: Detection algorithm complete, GraphQL integration next
-Last activity: 2026-02-02 — Completed 04-01-PLAN.md (detection algorithm)
+Plan: 2 of 3 complete
+Status: GraphQL API complete, frontend integration next
+Last activity: 2026-02-02 — Completed 04-02-PLAN.md (GraphQL API + auto-detection)
 
-Progress: [█████▓░░░░] 35% (Phase 1 complete, Phase 2 complete, Phase 3 complete, Phase 4 started: 1/3 plans)
+Progress: [█████▓░░░░] 37% (Phase 1 complete, Phase 2 complete, Phase 3 complete, Phase 4: 2/3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 1 Phase 4)
-- Average duration: 4min 50s
-- Total execution time: 0.99 hours
+- Total plans completed: 13 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 2 Phase 4)
+- Average duration: 5min 2s
+- Total execution time: 1.10 hours
 
 **By Phase:**
 
@@ -31,12 +31,12 @@ Progress: [█████▓░░░░] 35% (Phase 1 complete, Phase 2 comple
 | 01-database-schema-encryption | 2 | 8min | 4min |
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
-| 04-recurring-transactions | 1 | 7min 7s | 7min 7s |
+| 04-recurring-transactions | 2 | 13min 10s | 6min 35s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (7min 7s), 03-03 (3min 15s), 03-02 (4min 1s), 03-01 (4min), 02-03 (4min 43s)
-- Trend: TDD plan (04-01) slightly slower due to test-first approach, but still fast
+- Last 5 plans: 04-02 (6min 3s), 04-01 (7min 7s), 03-03 (3min 15s), 03-02 (4min 1s), 03-01 (4min)
+- Trend: Phase 4 plans slightly slower (API integration work), but consistent velocity
 
 *Updated after each plan completion*
 
@@ -47,6 +47,9 @@ Progress: [█████▓░░░░] 35% (Phase 1 complete, Phase 2 comple
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Non-blocking detection in import flow** (04-02) — Detection errors logged but don't fail import, ensures user always gets transactions
+- **Full history detection on each import** (04-02) — Re-scans all transactions on every import to keep patterns current as history grows
+- **Monthly normalization for recurring summary** (04-02) — All frequencies normalized to monthly equivalent for accurate budget comparison
 - **10% amount tolerance for recurring pattern grouping** (04-01) — Allows subscriptions with slight price changes to group as same pattern
 - **20% interval variance allowed for pattern consistency** (04-01) — Handles natural billing date variance (28-31 days monthly)
 - **Minimum 3 transactions required for recurring pattern** (04-01) — Prevents false positives from coincidental timing
@@ -99,5 +102,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 04-01-PLAN.md — detection algorithm ready for GraphQL integration
+Stopped at: Completed 04-02-PLAN.md — GraphQL API complete with auto-detection trigger
 Resume file: None
