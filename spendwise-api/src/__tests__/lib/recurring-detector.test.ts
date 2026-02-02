@@ -278,7 +278,7 @@ describe('detectRecurringPatterns', () => {
       const patterns = detectRecurringPatterns(transactions);
 
       expect(patterns).toHaveLength(2);
-      const amounts = patterns.map(p => p.averageAmount).sort();
+      const amounts = patterns.map(p => p.averageAmount).sort((a, b) => a - b);
       expect(amounts[0]).toBeCloseTo(9.99, 2);
       expect(amounts[1]).toBeCloseTo(15.99, 2);
     });
