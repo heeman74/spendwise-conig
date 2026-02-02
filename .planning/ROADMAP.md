@@ -161,10 +161,13 @@ Plans:
 2. User can view net worth over time as a historical line chart
 3. User can see breakdown by account showing each account's contribution to net worth
 
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md -- Prisma schema (NetWorthSnapshot model, includeInNetWorth) + BullMQ daily snapshot job
+- [ ] 05-02-PLAN.md -- GraphQL API (netWorth query, toggle/backfill mutations, on-import trigger)
+- [ ] 05-03-PLAN.md -- Frontend net worth page (hero, chart, account breakdown, sparklines, sidebar nav)
+- [ ] 05-04-PLAN.md -- Dashboard net worth summary card with sparkline
 
 ---
 
