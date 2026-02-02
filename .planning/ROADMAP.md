@@ -137,10 +137,12 @@ Plans:
 2. User can view a list of all recurring transactions with frequency and amount
 3. User can see total monthly recurring cost as a summary metric
 
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Schema extension + TDD recurring detection algorithm (normalization, frequency classification, pattern detection)
+- [ ] 04-02-PLAN.md -- GraphQL API (typeDefs, resolvers, mutations) + post-import detection trigger
+- [ ] 04-03-PLAN.md -- Frontend: recurring page with summary cards, sortable table, filters, add/dismiss, sidebar nav
 
 ---
 
