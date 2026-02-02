@@ -49,9 +49,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Recurring Transactions
 
-- [ ] **RECR-01**: System automatically detects recurring transactions (subscriptions, bills)
-- [ ] **RECR-02**: User can view all recurring transactions with frequency and amount
-- [ ] **RECR-03**: User can see total monthly recurring cost
+- [x] **RECR-01**: System automatically detects recurring transactions (subscriptions, bills)
+- [x] **RECR-02**: User can view all recurring transactions with frequency and amount
+- [x] **RECR-03**: User can see total monthly recurring cost
 
 ### Net Worth
 
@@ -156,9 +156,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SPND-03 | Phase 3 | Complete |
 | SPND-04 | Phase 3 | Complete |
 | SPND-05 | Phase 3 | Complete |
-| RECR-01 | Phase 7 | Pending |
-| RECR-02 | Phase 7 | Pending |
-| RECR-03 | Phase 7 | Pending |
+| RECR-01 | Phase 4 | Complete |
+| RECR-02 | Phase 4 | Complete |
+| RECR-03 | Phase 4 | Complete |
 | NWTH-01 | Phase 8 | Pending |
 | NWTH-02 | Phase 8 | Pending |
 | NWTH-03 | Phase 8 | Pending |

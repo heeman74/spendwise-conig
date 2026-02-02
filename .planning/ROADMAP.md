@@ -14,7 +14,7 @@ Plaid integration code exists in the codebase (built in Phase 2) and is preserve
 - [ ] ~~**Phase 4: Transaction Sync via Plaid**~~ - **PAUSED** — Depends on Plaid account sync
 - [x] **Phase 2: AI Categorization Enhancement** - Improve existing categorizer, add merchant rule learning, confidence tuning
 - [x] **Phase 3: Spending Analysis** - Category breakdowns, trends, and merchant insights
-- [ ] **Phase 4: Recurring Transactions** - Subscription detection from imported transaction patterns
+- [x] **Phase 4: Recurring Transactions** - Subscription detection from imported transaction patterns
 - [ ] **Phase 5: Net Worth Tracking** - Total net worth with historical trends from statement imports
 - [ ] **Phase 6: Investment Portfolio** - Holdings tracking via statement imports or manual entry
 - [ ] **Phase 7: Financial Planning** - AI-powered insights and goal-based advice
@@ -124,7 +124,7 @@ Plans:
 
 ---
 
-### Phase 4: Recurring Transactions
+### Phase 4: Recurring Transactions — COMPLETE
 
 **Goal**: Users can identify and track recurring expenses and subscriptions
 
@@ -140,9 +140,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- Schema extension + TDD recurring detection algorithm (normalization, frequency classification, pattern detection)
-- [ ] 04-02-PLAN.md -- GraphQL API (typeDefs, resolvers, mutations) + post-import detection trigger
-- [ ] 04-03-PLAN.md -- Frontend: recurring page with summary cards, sortable table, filters, add/dismiss, sidebar nav
+- [x] 04-01-PLAN.md -- Schema extension + TDD recurring detection algorithm (normalization, frequency classification, pattern detection)
+- [x] 04-02-PLAN.md -- GraphQL API (typeDefs, resolvers, mutations) + post-import detection trigger
+- [x] 04-03-PLAN.md -- Frontend: recurring page with summary cards, sortable table, filters, add/dismiss, sidebar nav
 
 ---
 
@@ -242,7 +242,7 @@ Plans:
 | ~~Transaction Sync via Plaid~~ | 0/TBD | Paused | — |
 | 2. AI Categorization Enhancement | 3/3 | Complete | 2026-02-01 |
 | 3. Spending Analysis | 3/3 | Complete | 2026-02-01 |
-| 4. Recurring Transactions | 0/TBD | Not started | — |
+| 4. Recurring Transactions | 3/3 | Complete | 2026-02-01 |
 | 5. Net Worth Tracking | 0/TBD | Not started | — |
 | 6. Investment Portfolio | 0/TBD | Not started | — |
 | 7. Financial Planning | 0/TBD | Not started | — |
@@ -250,4 +250,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-02-01 -- Phase 3 complete: 3 plans executed and verified*
+*Last updated: 2026-02-01 -- Phase 4 complete: 3 plans executed and verified*
