@@ -15,7 +15,7 @@ Plaid integration code exists in the codebase (built in Phase 2) and is preserve
 - [x] **Phase 2: AI Categorization Enhancement** - Improve existing categorizer, add merchant rule learning, confidence tuning
 - [x] **Phase 3: Spending Analysis** - Category breakdowns, trends, and merchant insights
 - [x] **Phase 4: Recurring Transactions** - Subscription detection from imported transaction patterns
-- [ ] **Phase 5: Net Worth Tracking** - Total net worth with historical trends from statement imports
+- [x] **Phase 5: Net Worth Tracking** - Total net worth with historical trends from statement imports
 - [ ] **Phase 6: Investment Portfolio** - Holdings tracking via statement imports or manual entry
 - [ ] **Phase 7: Financial Planning** - AI-powered insights and goal-based advice
 - [ ] **Phase 8: Unified Dashboard** - Complete financial picture in one view
@@ -148,7 +148,7 @@ Plans:
 
 ---
 
-### Phase 5: Net Worth Tracking
+### Phase 5: Net Worth Tracking — COMPLETE
 
 **Goal**: Users can track total net worth across all accounts over time
 
@@ -164,10 +164,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Prisma schema (NetWorthSnapshot model, includeInNetWorth) + BullMQ daily snapshot job
-- [ ] 05-02-PLAN.md -- GraphQL API (netWorth query, toggle/backfill mutations, on-import trigger)
-- [ ] 05-03-PLAN.md -- Frontend net worth page (hero, chart, account breakdown, sparklines, sidebar nav)
-- [ ] 05-04-PLAN.md -- Dashboard net worth summary card with sparkline
+- [x] 05-01-PLAN.md -- Prisma schema (NetWorthSnapshot model, includeInNetWorth) + BullMQ daily snapshot job
+- [x] 05-02-PLAN.md -- GraphQL API (netWorth query, toggle/backfill mutations, on-import trigger)
+- [x] 05-03-PLAN.md -- Frontend net worth page (hero, chart, account breakdown, sparklines, sidebar nav)
+- [x] 05-04-PLAN.md -- Dashboard net worth summary card with sparkline
 
 ---
 
@@ -248,11 +248,11 @@ Plans:
 | 2. AI Categorization Enhancement | 3/3 | Complete | 2026-02-01 |
 | 3. Spending Analysis | 3/3 | Complete | 2026-02-01 |
 | 4. Recurring Transactions | 5/5 | Complete | 2026-02-01 |
-| 5. Net Worth Tracking | 0/TBD | Not started | — |
+| 5. Net Worth Tracking | 4/4 | Complete | 2026-02-02 |
 | 6. Investment Portfolio | 0/TBD | Not started | — |
 | 7. Financial Planning | 0/TBD | Not started | — |
 | 8. Unified Dashboard | 0/TBD | Not started | — |
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-02-01 -- Phase 4 gap closure complete: all 5 plans verified (14/14 must-haves)*
+*Last updated: 2026-02-02 -- Phase 5 complete: all 4 plans verified (3/3 must-haves passed)*

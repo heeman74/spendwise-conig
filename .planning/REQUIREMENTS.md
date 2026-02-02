@@ -55,9 +55,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Net Worth
 
-- [ ] **NWTH-01**: User can see total net worth (assets minus liabilities) across all accounts
-- [ ] **NWTH-02**: User can view net worth over time (historical chart)
-- [ ] **NWTH-03**: User can see breakdown by account contributing to net worth
+- [x] **NWTH-01**: User can see total net worth (assets minus liabilities) across all accounts
+- [x] **NWTH-02**: User can view net worth over time (historical chart)
+- [x] **NWTH-03**: User can see breakdown by account contributing to net worth
 
 ### Investment Portfolio
 
@@ -159,9 +159,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RECR-01 | Phase 4 | Complete |
 | RECR-02 | Phase 4 | Complete |
 | RECR-03 | Phase 4 | Complete |
-| NWTH-01 | Phase 8 | Pending |
-| NWTH-02 | Phase 8 | Pending |
-| NWTH-03 | Phase 8 | Pending |
+| NWTH-01 | Phase 5 | Complete |
+| NWTH-02 | Phase 5 | Complete |
+| NWTH-03 | Phase 5 | Complete |
 | INVS-01 | Phase 9 | Pending |
 | INVS-02 | Phase 9 | Pending |
 | INVS-03 | Phase 9 | Pending |
@@ -183,4 +183,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-02-01 — Phase 3 complete (SPND-01 through SPND-05 verified)*
+*Last updated: 2026-02-02 — Phase 5 complete (NWTH-01 through NWTH-03 verified)*
