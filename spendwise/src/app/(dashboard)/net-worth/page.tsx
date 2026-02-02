@@ -34,8 +34,8 @@ export default function NetWorthPage() {
     }
   };
 
-  // Loading state
-  if (loading) {
+  // Loading state — only show full-page loader on initial load (no cached data yet)
+  if (loading && !netWorth) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-gray-500 dark:text-gray-400">Loading net worth data...</div>
