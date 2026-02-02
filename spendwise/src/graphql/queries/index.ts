@@ -7,3 +7,4 @@ export * from './user';
 export * from './twoFactor';
 export * from './plaid';
 export * from './statementImport';
+export * from './recurring';
