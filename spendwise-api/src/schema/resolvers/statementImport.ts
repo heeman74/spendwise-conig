@@ -2,6 +2,7 @@ import { GraphQLError } from 'graphql';
 import { Context } from '../../context';
 import type { ImportPreviewData, PreviewTransaction } from '../../lib/parsers/types';
 import { createOrUpdateMerchantRule } from '../../lib/merchant-rules';
+import { detectRecurringPatterns } from '../../lib/recurring-detector';
 
 export const statementImportResolvers = {
   Query: {
@@ -265,6 +266,76 @@ export const statementImportResolvers = {
             completedAt: new Date(),
           },
         });
+
+        // Trigger recurring transaction detection (non-blocking)
+        // Detection analyzes full transaction history, not just this import
+        try {
+          const allTransactions = await ctx.prisma.transaction.findMany({
+            where: { userId: ctx.user!.id },
+            orderBy: { date: 'asc' },
+            select: {
+              id: true,
+              date: true,
+              amount: true,
+              merchant: true,
+              category: true,
+              type: true,
+            },
+          });
+
+          const patterns = detectRecurringPatterns(
+            allTransactions.map((t) => ({
+              id: t.id,
+              date: t.date,
+              amount: parseFloat(t.amount.toString()),
+              merchant: t.merchant,
+              category: t.category,
+              type: t.type as 'INCOME' | 'EXPENSE' | 'TRANSFER',
+            }))
+          );
+
+          // Upsert detected patterns
+          for (const pattern of patterns) {
+            await ctx.prisma.recurringTransaction.upsert({
+              where: {
+                userId_merchantName_frequency: {
+                  userId: ctx.user!.id,
+                  merchantName: pattern.merchantName,
+                  frequency: pattern.frequency,
+                },
+              },
+              create: {
+                userId: ctx.user!.id,
+                plaidStreamId: require('crypto').randomUUID(),
+                description: pattern.description,
+                merchantName: pattern.merchantName,
+                category: pattern.category,
+                frequency: pattern.frequency,
+                isActive: true,
+                isDismissed: false,
+                status: pattern.status,
+                lastAmount: pattern.lastAmount,
+                averageAmount: pattern.averageAmount,
+                lastDate: pattern.lastDate,
+                firstDate: pattern.firstDate,
+                nextExpectedDate: pattern.nextExpectedDate,
+                transactionIds: pattern.transactionIds,
+              },
+              update: {
+                lastAmount: pattern.lastAmount,
+                averageAmount: pattern.averageAmount,
+                lastDate: pattern.lastDate,
+                transactionIds: pattern.transactionIds,
+                nextExpectedDate: pattern.nextExpectedDate,
+                status: pattern.status,
+                description: pattern.description,
+              },
+            });
+          }
+        } catch (detectError) {
+          // Non-blocking: log but don't fail the import
+          console.error('Recurring detection failed (non-blocking):', detectError);
+        }
 
         // Clean up Redis cache
         await ctx.redis.del(`import:preview:${input.importId}`);
