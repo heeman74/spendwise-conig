@@ -3,6 +3,7 @@ import { Context } from '../../context';
 import type { ImportPreviewData, PreviewTransaction } from '../../lib/parsers/types';
 import { createOrUpdateMerchantRule } from '../../lib/merchant-rules';
 import { detectRecurringPatterns } from '../../lib/recurring-detector';
+import { queue as snapshotQueue } from '../../lib/jobs/snapshotNetWorth';
 
 export const statementImportResolvers = {
   Query: {
@@ -427,6 +428,21 @@ export const statementImportResolvers = {
         } catch (detectError) {
           // Non-blocking: log but don't fail the import
           console.error('Recurring detection failed (non-blocking):', detectError);
+        }
+
+        // Trigger net worth snapshot (non-blocking)
+        // Captures current balances after import completes
+        try {
+          if (snapshotQueue) {
+            await snapshotQueue.add('on-demand-snapshot', {
+              userId: ctx.user!.id,
+              trigger: 'import',
+            });
+            console.log(`[NetWorth] Queued on-demand snapshot for user ${ctx.user!.id} after import`);
+          }
+        } catch (snapshotError) {
+          // Non-blocking: log but don't fail the import
+          console.error('[NetWorth] Failed to queue snapshot after import (non-blocking):', snapshotError);
         }
 
         // Clean up Redis cache
