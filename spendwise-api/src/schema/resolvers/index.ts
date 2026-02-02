@@ -10,6 +10,7 @@ import { plaidResolvers } from './plaid';
 import { statementImportResolvers } from './statementImport';
 import { recurringResolvers } from './recurring';
 import { netWorthResolvers } from './netWorth';
+import { investmentResolvers } from './investment';
 
 export const resolvers = {
   DateTime: DateTimeScalar,
@@ -28,6 +29,7 @@ export const resolvers = {
     ...statementImportResolvers.Query,
     ...recurringResolvers.Query,
     ...netWorthResolvers.Query,
+    ...investmentResolvers.Query,
   },
 
   Mutation: {
@@ -41,6 +43,7 @@ export const resolvers = {
     ...statementImportResolvers.Mutation,
     ...recurringResolvers.Mutation,
     ...netWorthResolvers.Mutation,
+    ...investmentResolvers.Mutation,
   },
 
   User: userResolvers.User,
@@ -49,4 +52,5 @@ export const resolvers = {
   SavingsGoal: savingsGoalResolvers.SavingsGoal,
   DashboardStats: analyticsResolvers.DashboardStats,
   PlaidItem: plaidResolvers.PlaidItem,
+  InvestmentHolding: investmentResolvers.InvestmentHolding,
 };
