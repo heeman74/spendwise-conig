@@ -79,13 +79,22 @@ skipped: 0
   reason: "User reported: Need to assign recurring from the transaction so that user can assign as recurring from the transactions page"
   severity: major
   test: 3
-  artifacts: []
-  missing: []
+  root_cause: "Missing feature — no 'Mark as Recurring' action exists on transaction rows. TransactionItem.tsx only has edit and delete buttons. The addRecurring mutation and useAddRecurring hook exist and work, but there's no UI entry point from the transactions page. Needs: a third action button or dropdown on TransactionItem, a frequency selection modal pre-filled with transaction data, and wiring to useAddRecurring hook."
+  artifacts:
+    - spendwise/src/components/transactions/TransactionItem.tsx (add Mark as Recurring button)
+    - spendwise/src/components/transactions/TransactionList.tsx (pass through callback)
+    - spendwise/src/app/(dashboard)/transactions/page.tsx (add handler + modal)
+  missing:
+    - "Mark as Recurring" action button on transaction rows
+    - Frequency selection modal pre-filled with transaction data
 
 - truth: "Dismissed/removed recurring transaction can be restored back to the active list"
   status: failed
   reason: "User reported: Removed recurring transaction is not able to be added back"
   severity: major
   test: 6
-  artifacts: []
-  missing: []
+  root_cause: "Apollo cache refetch issue — useRestoreRecurring uses refetchQueries: ['GetRecurring', 'GetRecurringSummary'] by operation name only. The page has TWO useRecurring queries with different variables (dismissed: false and dismissed: true). Apollo's name-based refetch doesn't properly coordinate both queries. The backend mutation works correctly (sets isDismissed: false), but the dismissed items list doesn't update in the UI after restore."
+  artifacts:
+    - spendwise/src/hooks/useRecurring.ts (fix refetchQueries in useRestoreRecurring and useDismissRecurring)
+  missing:
+    - Proper cache invalidation for queries with same operation name but different variables
