@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 5 of 8 (Net Worth Tracking) — GAP CLOSURE
-Plan: 5 of 6 gap closure plans complete
-Status: Executing gap closure plans from UAT
-Last activity: 2026-02-02 — Completed 05-05-PLAN.md (GraphQL type fix)
+Phase: 5 of 8 (Net Worth Tracking) — COMPLETE with gap closure
+Plan: 6 of 6 gap closure plans complete
+Status: Phase 5 fully complete with all UAT gaps closed
+Last activity: 2026-02-02 — Completed 05-06-PLAN.md (Backfill & sparkline UX improvements)
 
-Progress: [████████░░] 64% (Phase 1-5 base + 5/6 gap plans, 1 gap plan + 3 phases remaining)
+Progress: [████████░░] 65% (Phase 1-5 complete with gap closure, 3 phases remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 1 gap closure)
-- Average duration: 4min 25s
+- Total plans completed: 22 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure)
+- Average duration: 4min 13s
 - Total execution time: 1.55 hours
 
 **By Phase:**
@@ -33,12 +33,12 @@ Progress: [████████░░] 64% (Phase 1-5 base + 5/6 gap plans, 
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
-| 05-net-worth-tracking (gap) | 1 | 1min 31s | 1min 31s |
+| 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 05-05 (1min 31s), 05-04 (2min 30s), 05-03 (5min 18s), 05-02 (4min 1s), 05-01 (3min 14s)
-- Trend: Gap closure plan extremely fast - surgical GraphQL type fix
+- Last 5 plans: 05-06 (1min 54s), 05-05 (1min 31s), 05-04 (2min 30s), 05-03 (5min 18s), 05-02 (4min 1s)
+- Trend: Gap closure plans extremely fast (under 2min) - surgical fixes to UX issues
 
 *Updated after each plan completion*
 
@@ -49,6 +49,11 @@ Progress: [████████░░] 64% (Phase 1-5 base + 5/6 gap plans, 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Backfill banner shows when < 3 data points** (05-06) — Changed from !hasHistory to < 3 points threshold, users with limited history see generation prompt
+- **Persistent subtle backfill link** (05-06) — Always visible below chart when hasAccounts, provides ongoing access after banner disappears
+- **Area chart with gradient for sparklines** (05-06) — Dashboard sparkline uses AreaChart with gradient fill for better visual recognition vs line charts
+- **Single data point duplication** (05-06) — Duplicate single points to create visible horizontal line in charts instead of invisible dot
+- **Conditional dot rendering** (05-06) — Show dots when <= 3 points for visibility, hide for normal-density data
 - **Self-contained dashboard widgets with error handling** (05-04) — Dashboard components fetch their own data and handle errors gracefully without breaking parent layout
 - **ONE_MONTH time range for dashboard sparkline** (05-04) — Dashboard net worth widget uses 1-month data for meaningful recent trend
 - **Entire card clickable for navigation** (05-04) — Dashboard widgets wrapped in Link for intuitive navigation to detail pages
@@ -126,5 +131,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 05-05-PLAN.md (GraphQL type fix)
+Stopped at: Phase 5 fully complete — all 4 base plans + 2 gap closure plans executed
 Resume file: None
