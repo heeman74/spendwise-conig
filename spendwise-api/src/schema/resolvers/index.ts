@@ -9,6 +9,7 @@ import { twoFactorResolvers } from './twoFactor';
 import { plaidResolvers } from './plaid';
 import { statementImportResolvers } from './statementImport';
 import { recurringResolvers } from './recurring';
+import { netWorthResolvers } from './netWorth';
 
 export const resolvers = {
   DateTime: DateTimeScalar,
@@ -26,6 +27,7 @@ export const resolvers = {
     ...plaidResolvers.Query,
     ...statementImportResolvers.Query,
     ...recurringResolvers.Query,
+    ...netWorthResolvers.Query,
   },
 
   Mutation: {
@@ -38,6 +40,7 @@ export const resolvers = {
     ...plaidResolvers.Mutation,
     ...statementImportResolvers.Mutation,
     ...recurringResolvers.Mutation,
+    ...netWorthResolvers.Mutation,
   },
 
   User: userResolvers.User,
