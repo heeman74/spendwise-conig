@@ -101,9 +101,14 @@ export const netWorthResolvers = {
       // Calculate current net worth
       const current = calculateNetWorth(currentAccounts);
 
-      // Build history array by grouping snapshots by date
+      // Build set of included account IDs for filtering history
+      const includedAccountIds = new Set(currentAccounts.map((a) => a.id));
+
+      // Build history array by grouping snapshots by date (only included accounts)
       const historyMap: Map<string, number> = new Map();
       snapshots.forEach((snapshot) => {
+        if (!includedAccountIds.has(snapshot.accountId)) return; // Skip excluded accounts
+
         const dateKey = snapshot.date.toISOString().split('T')[0];
         const balance = parseDecimal(snapshot.balance);
         const accountType = snapshot.account.type;
