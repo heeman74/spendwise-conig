@@ -12,6 +12,7 @@ import { typeDefs, resolvers } from './schema';
 import { createContext, Context } from './context';
 import { plaidWebhookRouter } from './routes/plaid-webhooks';
 import { statementUploadRouter } from './routes/statement-upload';
+import { setupNetWorthSnapshotQueue } from './lib/jobs/snapshotNetWorth';
 
 async function startServer() {
   const app = express();
@@ -74,6 +75,14 @@ async function startServer() {
     Apollo Server ready at http://localhost:${PORT}/graphql
     Health check at http://localhost:${PORT}/health
   `);
+
+  // Initialize BullMQ net worth snapshot queue
+  try {
+    await setupNetWorthSnapshotQueue();
+  } catch (error) {
+    console.error('[NetWorth] Failed to initialize snapshot queue:', error);
+    console.warn('[NetWorth] Server will continue without snapshot scheduling');
+  }
 }
 
 startServer().catch((error) => {
