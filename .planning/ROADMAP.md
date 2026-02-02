@@ -137,12 +137,14 @@ Plans:
 2. User can view a list of all recurring transactions with frequency and amount
 3. User can see total monthly recurring cost as a summary metric
 
-**Plans**: 3 plans
+**Plans**: 5 plans
 
 Plans:
 - [x] 04-01-PLAN.md -- Schema extension + TDD recurring detection algorithm (normalization, frequency classification, pattern detection)
 - [x] 04-02-PLAN.md -- GraphQL API (typeDefs, resolvers, mutations) + post-import detection trigger
 - [x] 04-03-PLAN.md -- Frontend: recurring page with summary cards, sortable table, filters, add/dismiss, sidebar nav
+- [ ] 04-04-PLAN.md -- Gap closure: Add "Mark as Recurring" action to transaction rows with frequency modal
+- [ ] 04-05-PLAN.md -- Gap closure: Fix Apollo cache invalidation for dismiss/restore mutations
 
 ---
 
@@ -242,7 +244,7 @@ Plans:
 | ~~Transaction Sync via Plaid~~ | 0/TBD | Paused | — |
 | 2. AI Categorization Enhancement | 3/3 | Complete | 2026-02-01 |
 | 3. Spending Analysis | 3/3 | Complete | 2026-02-01 |
-| 4. Recurring Transactions | 3/3 | Complete | 2026-02-01 |
+| 4. Recurring Transactions | 3/5 | Gap closure | 2026-02-01 |
 | 5. Net Worth Tracking | 0/TBD | Not started | — |
 | 6. Investment Portfolio | 0/TBD | Not started | — |
 | 7. Financial Planning | 0/TBD | Not started | — |
@@ -250,4 +252,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-02-01 -- Phase 4 complete: 3 plans executed and verified*
+*Last updated: 2026-02-01 -- Phase 4 gap closure: 2 plans added for UAT issues*
