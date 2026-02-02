@@ -79,8 +79,8 @@ export default function NetWorthPage() {
         timeRangeLabel={TIME_RANGE_LABELS[timeRange]}
       />
 
-      {/* Backfill button if no history */}
-      {hasAccounts && !hasHistory && (
+      {/* Backfill button if limited history */}
+      {hasAccounts && (!hasHistory || (netWorth?.history && netWorth.history.length < 3)) && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -88,7 +88,7 @@ export default function NetWorthPage() {
                 Generate Historical Data
               </p>
               <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
-                Create historical snapshots based on your transaction history
+                You have limited historical data. Generate monthly snapshots from your transaction history for a more complete trend.
               </p>
             </div>
             <button
@@ -135,6 +135,18 @@ export default function NetWorthPage() {
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
             />
+            {/* Subtle regenerate link */}
+            {hasAccounts && !backfillLoading && (
+              <button
+                onClick={handleBackfill}
+                className="text-xs text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 cursor-pointer mt-2"
+              >
+                Regenerate historical data
+              </button>
+            )}
+            {backfillLoading && (
+              <div className="text-xs text-gray-400 mt-2">Generating...</div>
+            )}
           </div>
 
           {/* Account breakdown */}
