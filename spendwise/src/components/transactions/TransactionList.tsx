@@ -18,6 +18,7 @@ interface TransactionListProps {
   isLoading?: boolean;
   onEdit?: (transaction: Transaction) => void;
   onDelete?: (id: string) => void;
+  onMarkRecurring?: (transaction: Transaction) => void;
   sort?: SortState;
   onSort?: (sort: SortState) => void;
   showConfidenceDetail?: boolean;
@@ -53,6 +54,7 @@ export default function TransactionList({
   isLoading = false,
   onEdit,
   onDelete,
+  onMarkRecurring,
   sort,
   onSort,
   showConfidenceDetail,
@@ -147,6 +149,7 @@ export default function TransactionList({
             transaction={transaction}
             onEdit={onEdit}
             onDelete={onDelete}
+            onMarkRecurring={onMarkRecurring}
             showConfidenceDetail={showConfidenceDetail}
           />
         ))}
