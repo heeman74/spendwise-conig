@@ -148,7 +148,7 @@ Plans:
 
 ---
 
-### Phase 5: Net Worth Tracking — UAT GAP CLOSURE
+### Phase 5: Net Worth Tracking — COMPLETE
 
 **Goal**: Users can track total net worth across all accounts over time
 
@@ -168,8 +168,8 @@ Plans:
 - [x] 05-02-PLAN.md -- GraphQL API (netWorth query, toggle/backfill mutations, on-import trigger)
 - [x] 05-03-PLAN.md -- Frontend net worth page (hero, chart, account breakdown, sparklines, sidebar nav)
 - [x] 05-04-PLAN.md -- Dashboard net worth summary card with sparkline
-- [ ] 05-05-PLAN.md -- Gap closure: Add includeInNetWorth to Account GraphQL type (fixes toggle + liabilities)
-- [ ] 05-06-PLAN.md -- Gap closure: Improve backfill button visibility + fix dashboard sparkline sparse data
+- [x] 05-05-PLAN.md -- Gap closure: Add includeInNetWorth to Account GraphQL type (fixes toggle + liabilities)
+- [x] 05-06-PLAN.md -- Gap closure: Improve backfill button visibility + fix dashboard sparkline sparse data
 
 ---
 
@@ -250,11 +250,11 @@ Plans:
 | 2. AI Categorization Enhancement | 3/3 | Complete | 2026-02-01 |
 | 3. Spending Analysis | 3/3 | Complete | 2026-02-01 |
 | 4. Recurring Transactions | 5/5 | Complete | 2026-02-01 |
-| 5. Net Worth Tracking | 4/6 | UAT Gap Closure | — |
+| 5. Net Worth Tracking | 6/6 | Complete | 2026-02-02 |
 | 6. Investment Portfolio | 0/TBD | Not started | — |
 | 7. Financial Planning | 0/TBD | Not started | — |
 | 8. Unified Dashboard | 0/TBD | Not started | — |
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-02-02 -- Phase 5 UAT: 4 gaps identified, 2 gap closure plans created (05-05, 05-06)*
+*Last updated: 2026-02-02 -- Phase 5 complete: 6/6 plans (4 original + 2 gap closure), 7/7 must-haves verified*
