@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 6 of 8 (Investment Portfolio)
-Plan: 1 of 4 plans complete (06-02 frontend data layer complete)
-Status: In progress — Wave 1 parallel execution (01-backend, 02-frontend running in parallel)
-Last activity: 2026-02-02 — Completed 06-02-PLAN.md (frontend portfolio data layer)
+Plan: 1 of 4 plans complete
+Status: In progress
+Last activity: 2026-02-02 — Completed 06-01-PLAN.md (investment backend API)
 
 Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 plan, 2.75 phases remaining)
 
@@ -21,7 +21,7 @@ Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 p
 
 **Velocity:**
 - Total plans completed: 23 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 1 Phase 6)
-- Average duration: 4min 5s
+- Average duration: 4min 4s
 - Total execution time: 1.57 hours
 
 **By Phase:**
@@ -34,12 +34,12 @@ Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 p
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
 | 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
-| 06-investment-portfolio | 1 | 1min 34s | 1min 34s |
+| 06-investment-portfolio | 1 | 3min 29s | 3min 29s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (1min 34s), 05-06 (1min 54s), 05-05 (1min 31s), 05-04 (2min 30s), 05-03 (5min 18s)
-- Trend: Frontend data layer plans very fast (under 2min) - queries/mutations follow established patterns
+- Last 5 plans: 06-01 (3min 29s), 05-06 (1min 54s), 05-05 (1min 31s), 05-04 (2min 30s), 05-03 (5min 18s)
+- Trend: Backend data layer plans fast (under 4min) - resolvers follow established netWorth patterns
 
 *Updated after each plan completion*
 
@@ -50,9 +50,10 @@ Progress: [████████░░] 67% (Phase 1-5 complete + 1 Phase 6 p
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- **Three separate queries instead of single mega-query** (06-02) — Enables flexible caching and selective refetching for portfolio, allocation, holdings
-- **Optional accountId filter on GET_HOLDINGS** (06-02) — Supports both full portfolio view and account-specific holdings views
-- **Mutation hooks refetch all three queries** (06-02) — Adding/updating holdings affects portfolio totals, allocation, and holdings list
+- **Return 0 for unrealized gains when costBasis is null** (06-01) — Graceful degradation for manual holdings without cost basis, still shows current value
+- **Normalize security types to standard categories** (06-01) — Handles variation in user-entered types (stock vs equity, ETF vs etf) for accurate asset allocation grouping
+- **15-minute cache TTL for portfolio queries** (06-01) — Balances data freshness with reduced database load for manual portfolios
+- **Security upsert using plaidSecurityId** (06-01) — Prevents duplicate securities, uses ticker symbol or falls back to security name as unique identifier
 - **Backfill banner shows when < 3 data points** (05-06) — Changed from !hasHistory to < 3 points threshold, users with limited history see generation prompt
 - **Persistent subtle backfill link** (05-06) — Always visible below chart when hasAccounts, provides ongoing access after banner disappears
 - **Area chart with gradient for sparklines** (05-06) — Dashboard sparkline uses AreaChart with gradient fill for better visual recognition vs line charts
@@ -135,5 +136,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 06-02-PLAN.md (frontend portfolio data layer)
+Stopped at: Completed 06-01-PLAN.md (investment backend API)
 Resume file: None
