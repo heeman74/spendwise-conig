@@ -75,26 +75,28 @@ export const netWorthResolvers = {
         snapshotWhereClause.accountId = { in: accountIds };
       }
 
-      // Build where clause for current accounts
-      const accountWhereClause: any = {
+      // Build where clause for all accounts (for breakdown panel)
+      const allAccountWhereClause: any = {
         userId: user.id,
-        includeInNetWorth: true,
       };
       if (accountIds && accountIds.length > 0) {
-        accountWhereClause.id = { in: accountIds };
+        allAccountWhereClause.id = { in: accountIds };
       }
 
-      // Fetch snapshots and current accounts
-      const [snapshots, currentAccounts] = await Promise.all([
+      // Fetch snapshots and ALL accounts (included + excluded for toggle UI)
+      const [snapshots, allAccounts] = await Promise.all([
         context.prisma.netWorthSnapshot.findMany({
           where: snapshotWhereClause,
           include: { account: true },
           orderBy: { date: 'asc' },
         }),
         context.prisma.account.findMany({
-          where: accountWhereClause,
+          where: allAccountWhereClause,
         }),
       ]);
+
+      // Filter to included accounts for net worth calculation
+      const currentAccounts = allAccounts.filter((a) => a.includeInNetWorth);
 
       // Calculate current net worth
       const current = calculateNetWorth(currentAccounts);
@@ -146,8 +148,8 @@ export const netWorthResolvers = {
         .filter((acc) => acc.type === 'CREDIT')
         .reduce((sum, acc) => sum + parseDecimal(acc.balance), 0);
 
-      // Build account breakdown with per-account history
-      const accounts = currentAccounts.map((account) => {
+      // Build account breakdown with per-account history (ALL accounts for toggle UI)
+      const accounts = allAccounts.map((account) => {
         const balance = parseDecimal(account.balance);
         const percentOfTotal = current !== 0 ? (Math.abs(balance) / Math.abs(current)) * 100 : 0;
 
