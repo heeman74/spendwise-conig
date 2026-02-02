@@ -164,23 +164,27 @@ model InvestmentHolding {
 }
 
 model RecurringTransaction {
-  id             String   @id @default(cuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plaidStreamId  String   @unique
-  description    String
-  merchantName   String?
-  category       String
-  frequency      String // "WEEKLY", "BIWEEKLY", "MONTHLY", "SEMI_MONTHLY", "ANNUALLY"
-  isActive       Boolean  @default(true)
-  lastAmount     Decimal  @db.Decimal(12, 2)
-  averageAmount  Decimal  @db.Decimal(12, 2)
-  lastDate       DateTime
-  firstDate      DateTime
-  transactionIds String[] // Array of transaction IDs in this stream
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidStreamId    String?   @unique // Optional for custom detection
+  description      String    @default("")
+  merchantName     String?
+  category         String
+  frequency        String    // "WEEKLY", "BIWEEKLY", "MONTHLY", "QUARTERLY", "ANNUALLY"
+  isActive         Boolean   @default(true)
+  isDismissed      Boolean   @default(false)
+  lastAmount       Decimal   @db.Decimal(12, 2)
+  averageAmount    Decimal   @db.Decimal(12, 2)
+  lastDate         DateTime
+  firstDate        DateTime
+  nextExpectedDate DateTime?
+  status           String    @default("ACTIVE") // "ACTIVE" or "POSSIBLY_CANCELLED"
+  transactionIds   String[]  // Array of transaction IDs in this stream
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
+  @@unique([userId, merchantName, frequency])
   @@index([userId])
   @@index([plaidStreamId])
 }
