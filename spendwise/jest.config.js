@@ -32,4 +32,14 @@ const customJestConfig = {
   coverageReporters: ['text', 'lcov', 'html'],
 };
 
-module.exports = createJestConfig(customJestConfig);
+// next/jest adds /node_modules/ to transformIgnorePatterns which blocks ESM
+// packages like @apollo/client v4. Override it after config creation.
+const baseConfig = createJestConfig(customJestConfig);
+module.exports = async () => {
+  const config = await baseConfig();
+  config.transformIgnorePatterns = [
+    '/node_modules/(?!@apollo/client)',
+    '^.+\\.module\\.(css|sass|scss)$',
+  ];
+  return config;
+};

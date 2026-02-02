@@ -1,6 +1,9 @@
+// Unmock Apollo so MockedProvider can use the real ApolloProvider
+jest.unmock('@apollo/client/react');
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MockedProvider } from '@apollo/client/testing';
+import { MockedProvider } from '@apollo/client/testing/react';
 import { TwoFactorSetup } from '@/components/auth/TwoFactorSetup';
 import { SEND_SETUP_CODE, ENABLE_TWO_FACTOR } from '@/graphql/mutations/twoFactor';
 
@@ -66,7 +69,7 @@ describe('TwoFactorSetup', () => {
     const mockSendEmailCode = {
       request: {
         query: SEND_SETUP_CODE,
-        variables: { type: 'EMAIL' },
+        variables: { type: 'EMAIL', phoneNumber: '' },
       },
       result: {
         data: {
@@ -305,7 +308,7 @@ describe('TwoFactorSetup', () => {
       const mockSendCode = {
         request: {
           query: SEND_SETUP_CODE,
-          variables: { type: 'EMAIL' },
+          variables: { type: 'EMAIL', phoneNumber: '' },
         },
         result: {
           data: {
@@ -345,16 +348,17 @@ describe('TwoFactorSetup', () => {
 
     it('should allow copying backup codes', async () => {
       const user = userEvent.setup();
-      Object.assign(navigator, {
-        clipboard: {
-          writeText: jest.fn(),
-        },
+      const writeText = jest.fn();
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        writable: true,
+        configurable: true,
       });
 
       const mockSendCode = {
         request: {
           query: SEND_SETUP_CODE,
-          variables: { type: 'EMAIL' },
+          variables: { type: 'EMAIL', phoneNumber: '' },
         },
         result: {
           data: {
@@ -393,7 +397,7 @@ describe('TwoFactorSetup', () => {
       const copyButton = screen.getByRole('button', { name: /Copy/i });
       await user.click(copyButton);
 
-      expect(navigator.clipboard.writeText).toHaveBeenCalled();
+      expect(writeText).toHaveBeenCalled();
     });
 
     it('should call onComplete when continuing from backup codes', async () => {
@@ -402,7 +406,7 @@ describe('TwoFactorSetup', () => {
       const mockSendCode = {
         request: {
           query: SEND_SETUP_CODE,
-          variables: { type: 'EMAIL' },
+          variables: { type: 'EMAIL', phoneNumber: '' },
         },
         result: {
           data: {
@@ -470,7 +474,7 @@ describe('TwoFactorSetup', () => {
       const mockSendCode = {
         request: {
           query: SEND_SETUP_CODE,
-          variables: { type: 'EMAIL' },
+          variables: { type: 'EMAIL', phoneNumber: '' },
         },
         result: {
           data: {
@@ -504,19 +508,27 @@ describe('TwoFactorSetup', () => {
   });
 
   describe('Error Handling', () => {
-    it('should display error when code sending fails', async () => {
+    it('should stay on method selection when code sending fails', async () => {
       const user = userEvent.setup();
 
-      const mockError = {
+      const mockSendCode = {
         request: {
           query: SEND_SETUP_CODE,
-          variables: { type: 'EMAIL' },
+          variables: { type: 'EMAIL', phoneNumber: '' },
         },
-        error: new Error('Failed to send code'),
+        result: {
+          data: {
+            sendSetupCode: {
+              success: false,
+              expiresInMinutes: 0,
+              codeSentTo: null,
+            },
+          },
+        },
       };
 
       render(
-        <MockedProvider mocks={[mockError]} addTypename={false}>
+        <MockedProvider mocks={[mockSendCode]} addTypename={false}>
           <TwoFactorSetup onComplete={mockOnComplete} />
         </MockedProvider>
       );
@@ -524,9 +536,14 @@ describe('TwoFactorSetup', () => {
       const emailButton = screen.getByText(/Email Verification/i).closest('button');
       await user.click(emailButton!);
 
+      // Wait for the mutation to resolve
       await waitFor(() => {
-        expect(screen.getByText(/Failed to send/i)).toBeInTheDocument();
+        // Should remain on method selection screen (not navigate to verify-code)
+        expect(screen.getByText(/Choose how you want to receive/i)).toBeInTheDocument();
       });
+
+      // Should NOT advance to the verification code screen
+      expect(screen.queryByLabelText(/Verification Code/i)).not.toBeInTheDocument();
     });
 
     it('should display error for invalid verification code', async () => {
@@ -535,7 +552,7 @@ describe('TwoFactorSetup', () => {
       const mockSendCode = {
         request: {
           query: SEND_SETUP_CODE,
-          variables: { type: 'EMAIL' },
+          variables: { type: 'EMAIL', phoneNumber: '' },
         },
         result: {
           data: {

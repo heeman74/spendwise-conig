@@ -1,6 +1,9 @@
+// Unmock Apollo so MockedProvider can use the real ApolloProvider
+jest.unmock('@apollo/client/react');
+
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MockedProvider } from '@apollo/client/testing';
+import { MockedProvider } from '@apollo/client/testing/react';
 import { TwoFactorVerify } from '@/components/auth/TwoFactorVerify';
 import { LOGIN_STEP_2 } from '@/graphql/mutations/twoFactor';
 
