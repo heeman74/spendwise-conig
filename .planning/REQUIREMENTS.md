@@ -61,11 +61,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Investment Portfolio
 
-- [ ] **INVS-01**: User can view all investment holdings with current values
-- [ ] **INVS-02**: User can view asset allocation breakdown (stocks, bonds, ETFs, cash)
-- [ ] **INVS-03**: User can view portfolio performance (total return, period changes)
+- [x] **INVS-01**: User can view all investment holdings with current values
+- [x] **INVS-02**: User can view asset allocation breakdown (stocks, bonds, ETFs, cash)
+- [x] **INVS-03**: User can view portfolio performance (total return, period changes)
 - [ ] **INVS-04**: Holdings prices are refreshed daily via Plaid
-- [ ] **INVS-05**: User can see cost basis and unrealized gains/losses per holding
+- [x] **INVS-05**: User can see cost basis and unrealized gains/losses per holding
 
 ### Financial Planning
 
@@ -162,11 +162,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NWTH-01 | Phase 5 | Complete |
 | NWTH-02 | Phase 5 | Complete |
 | NWTH-03 | Phase 5 | Complete |
-| INVS-01 | Phase 9 | Pending |
-| INVS-02 | Phase 9 | Pending |
-| INVS-03 | Phase 9 | Pending |
+| INVS-01 | Phase 6 | Complete |
+| INVS-02 | Phase 6 | Complete |
+| INVS-03 | Phase 6 | Complete |
 | INVS-04 | Phase 9 | Pending |
-| INVS-05 | Phase 9 | Pending |
+| INVS-05 | Phase 6 | Complete |
 | PLAN-01 | Phase 10 | Pending |
 | PLAN-02 | Phase 10 | Pending |
 | PLAN-03 | Phase 10 | Pending |

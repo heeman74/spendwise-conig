@@ -16,7 +16,7 @@ Plaid integration code exists in the codebase (built in Phase 2) and is preserve
 - [x] **Phase 3: Spending Analysis** - Category breakdowns, trends, and merchant insights
 - [x] **Phase 4: Recurring Transactions** - Subscription detection from imported transaction patterns
 - [x] **Phase 5: Net Worth Tracking** - Total net worth with historical trends from statement imports
-- [ ] **Phase 6: Investment Portfolio** - Holdings tracking via statement imports or manual entry
+- [x] **Phase 6: Investment Portfolio** - Holdings tracking via statement imports or manual entry
 - [ ] **Phase 7: Financial Planning** - AI-powered insights and goal-based advice
 - [ ] **Phase 8: Unified Dashboard** - Complete financial picture in one view
 
@@ -173,7 +173,7 @@ Plans:
 
 ---
 
-### Phase 6: Investment Portfolio
+### Phase 6: Investment Portfolio — COMPLETE
 
 **Goal**: Users can view investment holdings with performance and allocation insights
 
@@ -191,10 +191,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- Backend: investment GraphQL typeDefs + resolvers (portfolio, holdings, allocation queries; addHolding, updateHoldingPrice mutations)
-- [ ] 06-02-PLAN.md -- Frontend: GraphQL query/mutation definitions + usePortfolio hooks
-- [ ] 06-03-PLAN.md -- Frontend: portfolio page with PortfolioSummary, AssetAllocationChart, HoldingsTable components
-- [ ] 06-04-PLAN.md -- Dashboard: PortfolioSummaryCard widget integrated into dashboard page
+- [x] 06-01-PLAN.md -- Backend: investment GraphQL typeDefs + resolvers (portfolio, holdings, allocation queries; addHolding, updateHoldingPrice mutations)
+- [x] 06-02-PLAN.md -- Frontend: GraphQL query/mutation definitions + usePortfolio hooks
+- [x] 06-03-PLAN.md -- Frontend: portfolio page with PortfolioSummary, AssetAllocationChart, HoldingsTable components
+- [x] 06-04-PLAN.md -- Dashboard: PortfolioSummaryCard widget integrated into dashboard page
 
 ---
 
@@ -253,10 +253,10 @@ Plans:
 | 3. Spending Analysis | 3/3 | Complete | 2026-02-01 |
 | 4. Recurring Transactions | 5/5 | Complete | 2026-02-01 |
 | 5. Net Worth Tracking | 6/6 | Complete | 2026-02-02 |
-| 6. Investment Portfolio | 0/TBD | Not started | — |
+| 6. Investment Portfolio | 4/4 | Complete | 2026-02-02 |
 | 7. Financial Planning | 0/TBD | Not started | — |
 | 8. Unified Dashboard | 0/TBD | Not started | — |
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-02-02 -- Phase 5 complete: 6/6 plans (4 original + 2 gap closure), 7/7 must-haves verified*
+*Last updated: 2026-02-02 -- Phase 6 complete: 4/4 plans, 5/5 must-haves verified*
