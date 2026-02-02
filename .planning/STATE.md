@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 5 of 8 (Net Worth Tracking) — IN PROGRESS
-Plan: 2 of 4 complete
-Status: Plan 05-02 complete — GraphQL API ready
-Last activity: 2026-02-02 — Completed 05-02-PLAN.md
+Plan: 3 of 4 complete
+Status: Plan 05-03 complete — Frontend UI ready for UAT
+Last activity: 2026-02-02 — Completed 05-03-PLAN.md
 
-Progress: [██████░░░░] 55% (Phase 1-4 complete, Phase 5 in progress)
+Progress: [██████░░░░] 58% (Phase 1-4 complete, Phase 5 in progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 2 Phase 5)
-- Average duration: 4min 49s
-- Total execution time: 1.44 hours
+- Total plans completed: 19 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 3 Phase 5)
+- Average duration: 4min 48s
+- Total execution time: 1.52 hours
 
 **By Phase:**
 
@@ -32,12 +32,12 @@ Progress: [██████░░░░] 55% (Phase 1-4 complete, Phase 5 in p
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
-| 05-net-worth-tracking | 2 | 7min 15s | 3min 38s |
+| 05-net-worth-tracking | 3 | 12min 33s | 4min 11s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (4min 1s), 05-01 (3min 14s), 04-05 (5min 5s), 04-04 (5min 26s), 04-03 (4min 29s)
-- Trend: Phase 5 maintaining strong velocity, API plans executing efficiently
+- Last 5 plans: 05-03 (5min 18s), 05-02 (4min 1s), 05-01 (3min 14s), 04-05 (5min 5s), 04-04 (5min 26s)
+- Trend: Phase 5 on track, frontend UI plans slightly longer than API plans (expected)
 
 *Updated after each plan completion*
 
@@ -48,6 +48,10 @@ Progress: [██████░░░░] 55% (Phase 1-4 complete, Phase 5 in p
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Adaptive granularity for chart data** (05-03) — 1M/3M show daily, 6M weekly, 1Y/All monthly to prevent chart overcrowding
+- **All accounts visible regardless of balance** (05-03) — Empty accounts shown in breakdown, users can track zero-balance accounts
+- **Desktop 3-column grid layout** (05-03) — Chart spans 2/3 width, breakdown 1/3, mobile stacks vertically
+- **Backfill button conditional visibility** (05-03) — Shown only when accounts exist but history is empty
 - **Non-blocking snapshot trigger** (05-02) — Snapshot queue trigger wrapped in try/catch, import success is primary operation
 - **Monthly backfill with 2-year limit** (05-02) — backfillNetWorthSnapshots generates monthly snapshots, limited to 24 months
 - **Credit accounts as liabilities** (05-02) — CREDIT account type always subtracted from net worth regardless of balance sign
@@ -118,5 +122,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 05-02-PLAN.md (GraphQL API)
+Stopped at: Completed 05-03-PLAN.md (Frontend UI)
 Resume file: None
