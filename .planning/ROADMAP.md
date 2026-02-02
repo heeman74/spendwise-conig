@@ -188,11 +188,13 @@ Plans:
 4. Holdings data sourced from statement imports or manual entry
 5. User can see cost basis and unrealized gains/losses per holding
 
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md -- Backend: investment GraphQL typeDefs + resolvers (portfolio, holdings, allocation queries; addHolding, updateHoldingPrice mutations)
+- [ ] 06-02-PLAN.md -- Frontend: GraphQL query/mutation definitions + usePortfolio hooks
+- [ ] 06-03-PLAN.md -- Frontend: portfolio page with PortfolioSummary, AssetAllocationChart, HoldingsTable components
+- [ ] 06-04-PLAN.md -- Dashboard: PortfolioSummaryCard widget integrated into dashboard page
 
 ---
 
