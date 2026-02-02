@@ -31,6 +31,7 @@ model User {
   recurringTransactions   RecurringTransaction[]
   statementImports        StatementImport[]
   merchantRules           MerchantRule[]
+  netWorthSnapshots       NetWorthSnapshot[]
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 }
@@ -51,7 +52,9 @@ model Account {
   isLinked        Boolean     @default(false) // Manual vs Plaid-linked
   mask            String?     // Last 4 digits
   officialName    String?     // Institution's official account name
+  includeInNetWorth Boolean   @default(true)
   transactions     Transaction[]
+  netWorthSnapshots NetWorthSnapshot[]
   holdings         InvestmentHolding[]
   statementImports StatementImport[]
   createdAt        DateTime      @default(now())
@@ -306,4 +309,20 @@ enum ImportStatus {
   IMPORTING
   COMPLETED
   ERROR
+}
+
+model NetWorthSnapshot {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  balance   Decimal  @db.Decimal(12, 2)
+  date      DateTime @db.Date
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, accountId, date])
+  @@index([userId, date])
+  @@index([accountId, date])
 }
