@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 4 of 8 (Recurring Transactions) — COMPLETE
-Plan: 5 of 5 complete (3 core + 2 gap closure)
-Status: Phase verified — 14/14 must-haves passed (re-verified after gap closure)
-Last activity: 2026-02-01 — Phase 4 gap closure complete, verified
+Phase: 5 of 8 (Net Worth Tracking) — IN PROGRESS
+Plan: 1 of 3 complete
+Status: Plan 05-01 complete — snapshot infrastructure ready
+Last activity: 2026-02-02 — Completed 05-01-PLAN.md
 
-Progress: [██████░░░░] 50% (Phase 1-4 complete, 4 active phases remaining)
+Progress: [██████░░░░] 53% (Phase 1-4 complete, Phase 5 started)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 3 Phase 4 + 2 gap closure)
-- Average duration: 5min 1s
-- Total execution time: 1.34 hours
+- Total plans completed: 17 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 1 Phase 5)
+- Average duration: 4min 52s
+- Total execution time: 1.37 hours
 
 **By Phase:**
 
@@ -32,11 +32,12 @@ Progress: [██████░░░░] 50% (Phase 1-4 complete, 4 active pha
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
+| 05-net-worth-tracking | 1 | 3min 14s | 3min 14s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 04-05 (5min 5s), 04-04 (5min 26s), 04-03 (4min 29s), 04-02 (6min 3s), 04-01 (7min 7s)
-- Trend: Gap closure plans executing at normal velocity, Phase 4 fully complete with all fixes
+- Last 5 plans: 05-01 (3min 14s), 04-05 (5min 5s), 04-04 (5min 26s), 04-03 (4min 29s), 04-02 (6min 3s)
+- Trend: Phase 5 started strong, infrastructure plans executing efficiently
 
 *Updated after each plan completion*
 
@@ -47,6 +48,10 @@ Progress: [██████░░░░] 50% (Phase 1-4 complete, 4 active pha
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Separate Redis connection for BullMQ** (05-01) — Create dedicated Redis client with maxRetriesPerRequest: null for BullMQ, separate from resolver caching client
+- **Date precision for snapshots** (05-01) — Use @db.Date instead of @db.Timestamp for snapshot date field, daily precision sufficient
+- **Dual snapshot job types** (05-01) — Support both daily-snapshot (scheduled) and on-demand-snapshot (import-triggered) for flexibility
+- **Skip duplicates over upsert** (05-01) — Use createMany with skipDuplicates for efficient idempotent snapshot capture
 - **Document-based refetchQueries over string-based** (04-05) — Use query document objects instead of operation name strings to ensure all active query instances with different variables are refetched
 - **Pre-filled readonly modal for mark-as-recurring** (04-04) — Transaction data shown as read-only summary, only frequency selection required from user
 - **Reuse existing addRecurring hook** (04-04) — No new API mutations needed, wired existing useAddRecurring to transactions page
@@ -108,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: Phase 4 fully complete — all 5 plans executed, verified 14/14 must-haves
+Last session: 2026-02-02
+Stopped at: Completed 05-01-PLAN.md (snapshot infrastructure)
 Resume file: None
