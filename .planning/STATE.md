@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 4 of 8 (Recurring Transactions) — IN PROGRESS
-Plan: 2 of 3 complete
-Status: GraphQL API complete, frontend integration next
-Last activity: 2026-02-02 — Completed 04-02-PLAN.md (GraphQL API + auto-detection)
+Phase: 4 of 8 (Recurring Transactions) — COMPLETE
+Plan: 3 of 3 complete
+Status: Phase 4 complete — Detection, API, and frontend integration all done
+Last activity: 2026-02-02 — Completed 04-03-PLAN.md (Recurring transactions frontend)
 
-Progress: [█████▓░░░░] 37% (Phase 1 complete, Phase 2 complete, Phase 3 complete, Phase 4: 2/3 plans)
+Progress: [██████░░░░] 41% (Phase 1 complete, Phase 2 complete, Phase 3 complete, Phase 4 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 2 Phase 4)
-- Average duration: 5min 2s
-- Total execution time: 1.10 hours
+- Total plans completed: 14 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 3 Phase 4)
+- Average duration: 5min 0s
+- Total execution time: 1.17 hours
 
 **By Phase:**
 
@@ -31,12 +31,12 @@ Progress: [█████▓░░░░] 37% (Phase 1 complete, Phase 2 comple
 | 01-database-schema-encryption | 2 | 8min | 4min |
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
-| 04-recurring-transactions | 2 | 13min 10s | 6min 35s |
+| 04-recurring-transactions | 3 | 17min 39s | 5min 53s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (6min 3s), 04-01 (7min 7s), 03-03 (3min 15s), 03-02 (4min 1s), 03-01 (4min)
-- Trend: Phase 4 plans slightly slower (API integration work), but consistent velocity
+- Last 5 plans: 04-03 (4min 29s), 04-02 (6min 3s), 04-01 (7min 7s), 03-03 (3min 15s), 03-02 (4min 1s)
+- Trend: Phase 4 complete with good velocity, frontend work faster than initial detection algorithm
 
 *Updated after each plan completion*
 
@@ -47,6 +47,10 @@ Progress: [█████▓░░░░] 37% (Phase 1 complete, Phase 2 comple
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Sortable table with single-row expansion** (04-03) — Click column headers to sort, click row to expand (one at a time for clean UI)
+- **Dismissed section collapsed by default** (04-03) — Keeps main view clean, dismissed items accessible but not prominent
+- **Frequency dropdown + type tabs for filters** (04-03) — 5 frequency options in dropdown, 3 type options as tabs for optimal UX
+- **Possibly cancelled items dimmed not hidden** (04-03) — Visual distinction without removing from view, users can assess and dismiss
 - **Non-blocking detection in import flow** (04-02) — Detection errors logged but don't fail import, ensures user always gets transactions
 - **Full history detection on each import** (04-02) — Re-scans all transactions on every import to keep patterns current as history grows
 - **Monthly normalization for recurring summary** (04-02) — All frequencies normalized to monthly equivalent for accurate budget comparison
@@ -102,5 +106,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 04-02-PLAN.md — GraphQL API complete with auto-detection trigger
+Stopped at: Completed 04-03-PLAN.md — Phase 4 complete (recurring transactions feature fully built)
 Resume file: None
