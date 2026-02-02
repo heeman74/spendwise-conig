@@ -9,6 +9,7 @@ import RecentTransactions from '@/components/dashboard/RecentTransactions';
 import SpendingOverview from '@/components/dashboard/SpendingOverview';
 import QuickActions from '@/components/dashboard/QuickActions';
 import TrendLineChart from '@/components/charts/TrendLineChart';
+import NetWorthSummaryCard from '@/components/dashboard/NetWorthSummaryCard';
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import { useDashboardStats } from '@/hooks/useDashboard';
@@ -180,6 +181,9 @@ export default function DashboardPage() {
           }
         />
       </div>
+
+      {/* Net Worth Summary */}
+      <NetWorthSummaryCard />
 
       {/* Charts and transactions grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
