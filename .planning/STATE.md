@@ -6,23 +6,23 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Users see their complete financial picture in one place — every account, every transaction imported from statements and automatically categorized — with AI-powered advice on how to save more and invest smarter based on their personal goals.
 
-**Current focus:** Phase 4 complete — ready for Phase 5
+**Current focus:** Phase 4 gap closure complete — ready for Phase 5
 
 ## Current Position
 
-Phase: 4 of 8 (Recurring Transactions) — COMPLETE
-Plan: 3 of 3 complete
-Status: Phase verified — 11/11 must-haves passed
-Last activity: 2026-02-01 — Phase 4 complete (all plans executed and verified)
+Phase: 4 of 8 (Recurring Transactions) — COMPLETE + gap closure
+Plan: 4 of 4 complete (3 core + 1 gap closure)
+Status: Phase verified + gap closure 04-04 complete
+Last activity: 2026-02-02 — Completed 04-04-PLAN.md (Mark as Recurring from Transactions)
 
 Progress: [██████░░░░] 50% (Phase 1-4 complete, 4 active phases remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 3 Phase 4)
-- Average duration: 5min 0s
-- Total execution time: 1.17 hours
+- Total plans completed: 15 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 3 Phase 4 + 1 gap closure)
+- Average duration: 5min 2s
+- Total execution time: 1.26 hours
 
 **By Phase:**
 
@@ -31,12 +31,12 @@ Progress: [██████░░░░] 50% (Phase 1-4 complete, 4 active pha
 | 01-database-schema-encryption | 2 | 8min | 4min |
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
-| 04-recurring-transactions | 3 | 17min 39s | 5min 53s |
+| 04-recurring-transactions | 4 | 23min 5s | 5min 46s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (4min 29s), 04-02 (6min 3s), 04-01 (7min 7s), 03-03 (3min 15s), 03-02 (4min 1s)
-- Trend: Phase 4 complete with good velocity, frontend work faster than initial detection algorithm
+- Last 5 plans: 04-04 (5min 26s), 04-03 (4min 29s), 04-02 (6min 3s), 04-01 (7min 7s), 03-03 (3min 15s)
+- Trend: Gap closure plan executed at normal velocity, Phase 4 fully complete
 
 *Updated after each plan completion*
 
@@ -47,6 +47,8 @@ Progress: [██████░░░░] 50% (Phase 1-4 complete, 4 active pha
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Pre-filled readonly modal for mark-as-recurring** (04-04) — Transaction data shown as read-only summary, only frequency selection required from user
+- **Reuse existing addRecurring hook** (04-04) — No new API mutations needed, wired existing useAddRecurring to transactions page
 - **Sortable table with single-row expansion** (04-03) — Click column headers to sort, click row to expand (one at a time for clean UI)
 - **Dismissed section collapsed by default** (04-03) — Keeps main view clean, dismissed items accessible but not prominent
 - **Frequency dropdown + type tabs for filters** (04-03) — 5 frequency options in dropdown, 3 type options as tabs for optimal UX
@@ -105,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: Phase 4 complete — all 3 plans executed and verified
+Last session: 2026-02-02
+Stopped at: Completed 04-04-PLAN.md (gap closure)
 Resume file: None
