@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 5 of 8 (Net Worth Tracking) — IN PROGRESS
-Plan: 1 of 3 complete
-Status: Plan 05-01 complete — snapshot infrastructure ready
-Last activity: 2026-02-02 — Completed 05-01-PLAN.md
+Plan: 2 of 4 complete
+Status: Plan 05-02 complete — GraphQL API ready
+Last activity: 2026-02-02 — Completed 05-02-PLAN.md
 
-Progress: [██████░░░░] 53% (Phase 1-4 complete, Phase 5 started)
+Progress: [██████░░░░] 55% (Phase 1-4 complete, Phase 5 in progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 1 Phase 5)
-- Average duration: 4min 52s
-- Total execution time: 1.37 hours
+- Total plans completed: 18 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 2 Phase 5)
+- Average duration: 4min 49s
+- Total execution time: 1.44 hours
 
 **By Phase:**
 
@@ -32,12 +32,12 @@ Progress: [██████░░░░] 53% (Phase 1-4 complete, Phase 5 star
 | 02-ai-categorization-enhancement | 3 | 18min 8s | 6min 2s |
 | 03-spending-analysis | 3 | 11min 16s | 3min 45s |
 | 04-recurring-transactions | 5 | 28min 10s | 5min 38s |
-| 05-net-worth-tracking | 1 | 3min 14s | 3min 14s |
+| 05-net-worth-tracking | 2 | 7min 15s | 3min 38s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (3min 14s), 04-05 (5min 5s), 04-04 (5min 26s), 04-03 (4min 29s), 04-02 (6min 3s)
-- Trend: Phase 5 started strong, infrastructure plans executing efficiently
+- Last 5 plans: 05-02 (4min 1s), 05-01 (3min 14s), 04-05 (5min 5s), 04-04 (5min 26s), 04-03 (4min 29s)
+- Trend: Phase 5 maintaining strong velocity, API plans executing efficiently
 
 *Updated after each plan completion*
 
@@ -48,6 +48,10 @@ Progress: [██████░░░░] 53% (Phase 1-4 complete, Phase 5 star
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Non-blocking snapshot trigger** (05-02) — Snapshot queue trigger wrapped in try/catch, import success is primary operation
+- **Monthly backfill with 2-year limit** (05-02) — backfillNetWorthSnapshots generates monthly snapshots, limited to 24 months
+- **Credit accounts as liabilities** (05-02) — CREDIT account type always subtracted from net worth regardless of balance sign
+- **Filter-aware cache keys for net worth** (05-02) — Cache keys include timeRange and accountIds to prevent collisions
 - **Separate Redis connection for BullMQ** (05-01) — Create dedicated Redis client with maxRetriesPerRequest: null for BullMQ, separate from resolver caching client
 - **Date precision for snapshots** (05-01) — Use @db.Date instead of @db.Timestamp for snapshot date field, daily precision sufficient
 - **Dual snapshot job types** (05-01) — Support both daily-snapshot (scheduled) and on-demand-snapshot (import-triggered) for flexibility
@@ -114,5 +118,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 05-01-PLAN.md (snapshot infrastructure)
+Stopped at: Completed 05-02-PLAN.md (GraphQL API)
 Resume file: None
