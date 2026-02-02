@@ -6,3 +6,4 @@ export * from './useAdvice';
 export * from './usePlaid';
 export * from './useStatementImport';
 export * from './useRecurring';
+export * from './useNetWorth';

@@ -6,3 +6,4 @@ export * from './twoFactor';
 export * from './plaid';
 export * from './statementImport';
 export * from './recurring';
+export * from './netWorth';
