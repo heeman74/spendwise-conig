@@ -40,7 +40,7 @@ export function useToggleIncludeInNetWorth() {
   const [toggleIncludeMutation, { loading, error }] = useMutation<any>(
     TOGGLE_INCLUDE_IN_NET_WORTH,
     {
-      refetchQueries: [{ query: GET_NET_WORTH }],
+      refetchQueries: ['GetNetWorth'],
       awaitRefetchQueries: true,
     }
   );
@@ -62,7 +62,7 @@ export function useBackfillSnapshots() {
   const [backfillMutation, { loading, error }] = useMutation<any>(
     BACKFILL_NET_WORTH_SNAPSHOTS,
     {
-      refetchQueries: [{ query: GET_NET_WORTH }],
+      refetchQueries: ['GetNetWorth'],
       awaitRefetchQueries: true,
     }
   );
