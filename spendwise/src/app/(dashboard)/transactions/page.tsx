@@ -12,30 +12,34 @@ import Select from '@/components/ui/Select';
 import {
   useTransactions,
   useTransactionsNeedingReview,
+  useCategories,
   useCreateTransaction,
   useUpdateTransaction,
   useDeleteTransaction,
 } from '@/hooks/useTransactions';
 import { useAccounts } from '@/hooks/useAccounts';
+import { useAddRecurring } from '@/hooks/useRecurring';
+import MarkAsRecurringModal from '@/components/transactions/MarkAsRecurringModal';
 import type { Transaction, TransactionFilters as FiltersType } from '@/types';
 import type { SortState } from '@/components/transactions/TransactionList';
 
-// NOTE: Categories hardcoded here - must match VALID_CATEGORIES in spendwise-api/src/lib/constants.ts
-const categories = [
-  { value: 'Food & Dining', label: 'Food & Dining' },
-  { value: 'Groceries', label: 'Groceries' },
-  { value: 'Shopping', label: 'Shopping' },
-  { value: 'Transportation', label: 'Transportation' },
-  { value: 'Bills & Utilities', label: 'Bills & Utilities' },
-  { value: 'Entertainment', label: 'Entertainment' },
-  { value: 'Healthcare', label: 'Healthcare' },
-  { value: 'Travel', label: 'Travel' },
-  { value: 'Education', label: 'Education' },
-  { value: 'Personal Care', label: 'Personal Care' },
-  { value: 'Income', label: 'Income' },
-  { value: 'Transfer', label: 'Transfer' },
-  { value: 'Other', label: 'Other' },
+const PREDEFINED_CATEGORIES = [
+  'Food & Dining',
+  'Groceries',
+  'Shopping',
+  'Transportation',
+  'Bills & Utilities',
+  'Entertainment',
+  'Healthcare',
+  'Travel',
+  'Education',
+  'Personal Care',
+  'Income',
+  'Transfer',
+  'Other',
 ];
+
+const ADD_NEW_CATEGORY_VALUE = '__ADD_NEW__';
 
 const transactionTypes = [
   { value: 'EXPENSE', label: 'Expense' },
@@ -65,8 +69,10 @@ export default function TransactionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'review'>('all');
+  const [markRecurringTransaction, setMarkRecurringTransaction] = useState<Transaction | null>(null);
 
   const { accounts } = useAccounts();
+  const { categories: userCategories } = useCategories();
 
   // Transform UI filters to API format
   const apiFilters = useMemo(() => {
@@ -101,6 +107,7 @@ export default function TransactionsPage() {
   const { createTransaction } = useCreateTransaction();
   const { updateTransaction } = useUpdateTransaction();
   const { deleteTransaction } = useDeleteTransaction();
+  const { addRecurring, loading: addRecurringLoading } = useAddRecurring();
 
   // ── Infinite scroll via IntersectionObserver ──
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -131,6 +138,62 @@ export default function TransactionsPage() {
     description: '',
     date: new Date().toISOString().split('T')[0],
   });
+
+  // ── Custom category input state ──
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryInput, setNewCategoryInput] = useState('');
+  const newCategoryInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isAddingCategory) {
+      newCategoryInputRef.current?.focus();
+    }
+  }, [isAddingCategory]);
+
+  // Merge predefined + user-defined categories, deduplicated and sorted, with "+ Add Category" at the end
+  const categoryOptions = useMemo(() => {
+    const all = new Set(PREDEFINED_CATEGORIES);
+    for (const c of userCategories) all.add(c);
+    if (formData.category && formData.category !== ADD_NEW_CATEGORY_VALUE) {
+      all.add(formData.category);
+    }
+    const sorted = Array.from(all).sort((a, b) => a.localeCompare(b));
+    return [
+      ...sorted.map((c) => ({ value: c, label: c })),
+      { value: ADD_NEW_CATEGORY_VALUE, label: '+ Add Category' },
+    ];
+  }, [userCategories, formData.category]);
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === ADD_NEW_CATEGORY_VALUE) {
+      setIsAddingCategory(true);
+      setNewCategoryInput('');
+    } else {
+      setFormData({ ...formData, category: e.target.value });
+    }
+  };
+
+  const handleConfirmNewCategory = () => {
+    const trimmed = newCategoryInput.trim();
+    if (!trimmed) return;
+    setFormData({ ...formData, category: trimmed });
+    setIsAddingCategory(false);
+    setNewCategoryInput('');
+  };
+
+  const handleCancelNewCategory = () => {
+    setIsAddingCategory(false);
+    setNewCategoryInput('');
+  };
+
+  const handleNewCategoryKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleConfirmNewCategory();
+    } else if (e.key === 'Escape') {
+      handleCancelNewCategory();
+    }
+  };
 
   const accountOptions = useMemo(
     () => accounts.map((a: any) => ({ value: a.id, label: a.name })),
@@ -168,6 +231,25 @@ export default function TransactionsPage() {
       }
     }
   }, [deleteTransaction]);
+
+  const handleMarkRecurring = (transaction: Transaction) => {
+    setMarkRecurringTransaction(transaction);
+  };
+
+  const handleMarkRecurringSubmit = async (data: {
+    merchantName: string;
+    amount: number;
+    frequency: string;
+    category: string;
+    firstDate: string;
+  }) => {
+    try {
+      await addRecurring(data);
+      setMarkRecurringTransaction(null);
+    } catch (err) {
+      console.error('Failed to mark as recurring:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,6 +295,8 @@ export default function TransactionsPage() {
       description: '',
       date: new Date().toISOString().split('T')[0],
     });
+    setIsAddingCategory(false);
+    setNewCategoryInput('');
   };
 
   const handleExport = () => {
@@ -325,6 +409,7 @@ export default function TransactionsPage() {
           isLoading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onMarkRecurring={handleMarkRecurring}
           sort={sort}
           onSort={setSort}
         />
@@ -366,6 +451,7 @@ export default function TransactionsPage() {
               transactions={reviewTransactions}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onMarkRecurring={handleMarkRecurring}
               showConfidenceDetail
             />
           )}
@@ -378,6 +464,8 @@ export default function TransactionsPage() {
         onClose={() => {
           setIsModalOpen(false);
           setEditingTransaction(null);
+          setIsAddingCategory(false);
+          setNewCategoryInput('');
         }}
         title={editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
         size="md"
@@ -408,12 +496,52 @@ export default function TransactionsPage() {
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             />
-            <Select
-              label="Category"
-              options={categories}
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            />
+            {isAddingCategory ? (
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Category
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    ref={newCategoryInputRef}
+                    placeholder="e.g., Pet Care"
+                    value={newCategoryInput}
+                    onChange={(e) => setNewCategoryInput(e.target.value)}
+                    onKeyDown={handleNewCategoryKeyDown}
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    disabled={!newCategoryInput.trim()}
+                    onClick={handleConfirmNewCategory}
+                    aria-label="Confirm new category"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelNewCategory}
+                    aria-label="Cancel new category"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Select
+                label="Category"
+                options={categoryOptions}
+                value={formData.category}
+                onChange={handleCategoryChange}
+              />
+            )}
           </div>
           <Select
             label="Account"
@@ -440,6 +568,8 @@ export default function TransactionsPage() {
               onClick={() => {
                 setIsModalOpen(false);
                 setEditingTransaction(null);
+                setIsAddingCategory(false);
+                setNewCategoryInput('');
               }}
             >
               Cancel
@@ -450,6 +580,15 @@ export default function TransactionsPage() {
           </ModalFooter>
         </form>
       </Modal>
+
+      {/* Mark as Recurring Modal */}
+      <MarkAsRecurringModal
+        isOpen={!!markRecurringTransaction}
+        onClose={() => setMarkRecurringTransaction(null)}
+        transaction={markRecurringTransaction}
+        onSubmit={handleMarkRecurringSubmit}
+        loading={addRecurringLoading}
+      />
     </div>
   );
 }
