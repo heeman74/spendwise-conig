@@ -13,6 +13,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
     "@apollo/server": "^4.10.0",
     "@prisma/client": "^5.10.0",
     "bcryptjs": "^2.4.3",
