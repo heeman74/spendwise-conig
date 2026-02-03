@@ -12,6 +12,7 @@ import { typeDefs, resolvers } from './schema';
 import { createContext, Context } from './context';
 import { plaidWebhookRouter } from './routes/plaid-webhooks';
 import { statementUploadRouter } from './routes/statement-upload';
+import { chatStreamRouter } from './routes/chat-stream';
 import { setupNetWorthSnapshotQueue } from './lib/jobs/snapshotNetWorth';
 
 async function startServer() {
@@ -24,6 +25,9 @@ async function startServer() {
 
   // Register statement upload route (REST endpoint with multer)
   app.use(statementUploadRouter);
+
+  // Register chat streaming route (SSE endpoint for AI responses)
+  app.use('/api/chat', chatStreamRouter);
 
   const server = new ApolloServer<Context>({
     typeDefs,

@@ -445,6 +445,24 @@ export const statementImportResolvers = {
           console.error('[NetWorth] Failed to queue snapshot after import (non-blocking):', snapshotError);
         }
 
+        // Invalidate insight cache after import (non-blocking)
+        // Ensures insights reflect latest transactions
+        try {
+          await ctx.prisma.insightCache.updateMany({
+            where: {
+              userId: ctx.user!.id,
+              invalidatedAt: null,
+            },
+            data: {
+              invalidatedAt: new Date(),
+            },
+          });
+          console.log(`[Insights] Invalidated insight cache for user ${ctx.user!.id} after import`);
+        } catch (insightError) {
+          // Non-blocking: log but don't fail the import
+          console.error('[Insights] Failed to invalidate insight cache after import (non-blocking):', insightError);
+        }
+
         // Clean up Redis cache
         await ctx.redis.del(`import:preview:${input.importId}`);
 
