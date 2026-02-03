@@ -8,3 +8,4 @@ export * from './statementImport';
 export * from './recurring';
 export * from './netWorth';
 export * from './portfolio';
+export * from './financialPlanning';
