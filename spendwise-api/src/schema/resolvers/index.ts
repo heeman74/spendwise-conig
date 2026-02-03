@@ -57,4 +57,5 @@ export const resolvers = {
   PlaidItem: plaidResolvers.PlaidItem,
   InvestmentHolding: investmentResolvers.InvestmentHolding,
   ChatSession: financialPlanningResolvers.ChatSession,
+  ChatMessage: financialPlanningResolvers.ChatMessage,
 };
