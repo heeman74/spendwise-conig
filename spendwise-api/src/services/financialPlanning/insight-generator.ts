@@ -12,14 +12,9 @@ export async function generateAndCacheInsights(
   // Build financial summary
   const financialSummary = await buildFinancialSummary(prisma, userId);
 
-  // Check if user has sufficient data (at least 2 months of transactions)
+  // Check if user has sufficient data (at least 10 transactions total)
   const transactionCount = await prisma.transaction.count({
-    where: {
-      userId,
-      date: {
-        gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days
-      },
-    },
+    where: { userId },
   });
 
   if (transactionCount < 10) {

@@ -60,7 +60,14 @@ export async function buildFinancialSummary(
   prisma: PrismaClient,
   userId: string
 ): Promise<FinancialSummary> {
-  const endDate = new Date();
+  // Use the user's most recent transaction date as the end date,
+  // falling back to today if no transactions exist
+  const latestTransaction = await prisma.transaction.findFirst({
+    where: { userId },
+    orderBy: { date: 'desc' },
+    select: { date: true },
+  });
+  const endDate = latestTransaction?.date ?? new Date();
   const startDate = subMonths(endDate, 6);
 
   // Parallel queries for all financial data
