@@ -118,8 +118,14 @@ export async function generateInsightsFromSummary(
       throw new Error('No text content in response');
     }
 
-    // Parse JSON response
-    const insights = JSON.parse(textContent.text) as GeneratedInsight[];
+    // Parse JSON response (strip markdown code blocks if present)
+    let jsonText = textContent.text.trim();
+    const codeBlockMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      jsonText = codeBlockMatch[1].trim();
+    }
+
+    const insights = JSON.parse(jsonText) as GeneratedInsight[];
     return insights;
   } catch (error) {
     console.error('Insight generation error:', error);
@@ -164,8 +170,14 @@ export async function parseGoalFromText(
       throw new Error('No text content in response');
     }
 
-    // Parse JSON response
-    const parsedGoal = JSON.parse(textContent.text) as ParsedGoal;
+    // Parse JSON response (strip markdown code blocks if present)
+    let goalJsonText = textContent.text.trim();
+    const goalCodeBlockMatch = goalJsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (goalCodeBlockMatch) {
+      goalJsonText = goalCodeBlockMatch[1].trim();
+    }
+
+    const parsedGoal = JSON.parse(goalJsonText) as ParsedGoal;
 
     // Return null if confidence is too low
     if (parsedGoal.confidence < 0.5) {
