@@ -6,23 +6,23 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Users see their complete financial picture in one place — every account, every transaction imported from statements and automatically categorized — with AI-powered advice on how to save more and invest smarter based on their personal goals.
 
-**Current focus:** Phase 6 fully complete — ready for Phase 7
+**Current focus:** Phase 7 in progress — Financial Planning foundation complete
 
 ## Current Position
 
-Phase: 6 of 8 (Investment Portfolio) — COMPLETE
-Plan: 4 of 4 plans complete
-Status: Phase verified — 5/5 must-haves passed
-Last activity: 2026-02-02 — Phase 6 complete, all must-haves verified
+Phase: 7 of 8 (Financial Planning)
+Plan: 1 of 4 plans complete
+Status: In progress — Foundation layer complete (schema + services)
+Last activity: 2026-02-02 — Completed 07-01-PLAN.md
 
-Progress: [████████░░] 75% (Phase 1-6 complete, 2 phases remaining)
+Progress: [████████▓░] 78% (Phase 1-6 complete + 1/4 Phase 7)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 4 Phase 6)
-- Average duration: 3min 57s
-- Total execution time: 1.72 hours
+- Total plans completed: 27 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 4 Phase 6 + 1 Phase 7)
+- Average duration: 4min 1s
+- Total execution time: 1.81 hours
 
 **By Phase:**
 
@@ -35,11 +35,12 @@ Progress: [████████░░] 75% (Phase 1-6 complete, 2 phases rem
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
 | 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
 | 06-investment-portfolio | 4 | 14min 55s | 3min 44s |
+| 07-financial-planning | 1 | 5min 23s | 5min 23s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 06-04 (4min), 06-03 (3min 43s), 06-02 (3min 43s), 06-01 (3min 29s), 05-06 (1min 54s)
-- Trend: Phase 6 complete - consistent ~3.5-4min per plan across backend API, frontend hooks, and UI components
+- Last 5 plans: 07-01 (5min 23s), 06-04 (4min), 06-03 (3min 43s), 06-02 (3min 43s), 06-01 (3min 29s)
+- Trend: Phase 7 started - foundation plan took slightly longer due to schema extension + 6 service modules + SDK installation
 
 *Updated after each plan completion*
 
@@ -50,6 +51,11 @@ Progress: [████████░░] 75% (Phase 1-6 complete, 2 phases rem
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Anthropic Claude API for financial planning** (07-01) — Separate from OpenAI categorization, better conversational tone for advisory role
+- **25 message daily limit** (07-01) — Controls LLM API costs while providing sufficient quota for meaningful conversations
+- **6-month summary window** (07-01) — Captures seasonal patterns without excessive token usage
+- **Insight cache invalidation on statement import** (07-01) — Ensures insights always reflect latest data without constant regeneration
+- **Three separate models (ChatSession, ChatMessage, InsightCache)** (07-01) — Clean separation of concerns, efficient queries, supports both chat persistence and pre-loaded insights
 - **No sparkline for portfolio card** (06-04) — Portfolio lacks time-series history in Phase 6, shows static metrics appropriate for long-term investment tracking
 - **Show total return instead of monthly change** (06-04) — Portfolio displays "total return" reflecting long-term nature of investments
 - **Display holding count and account count** (06-04) — Provides portfolio diversification context at a glance on dashboard
@@ -144,5 +150,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Phase 6 fully complete — 4/4 plans executed, 5/5 must-haves verified
+Stopped at: Completed 07-01-PLAN.md — Foundation layer (schema + services) ready for GraphQL API
 Resume file: None
