@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 7 of 8 (Financial Planning)
-Plan: 1 of 4 plans complete
-Status: In progress — Foundation layer complete (schema + services)
-Last activity: 2026-02-02 — Completed 07-01-PLAN.md
+Plan: 2 of 4 plans complete
+Status: In progress — API layer complete (GraphQL + SSE streaming)
+Last activity: 2026-02-02 — Completed 07-02-PLAN.md
 
-Progress: [████████▓░] 78% (Phase 1-6 complete + 1/4 Phase 7)
+Progress: [████████▓░] 81% (Phase 1-6 complete + 2/4 Phase 7)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 4 Phase 6 + 1 Phase 7)
-- Average duration: 4min 1s
-- Total execution time: 1.81 hours
+- Total plans completed: 28 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 4 Phase 6 + 2 Phase 7)
+- Average duration: 3min 58s
+- Total execution time: 1.85 hours
 
 **By Phase:**
 
@@ -35,12 +35,12 @@ Progress: [████████▓░] 78% (Phase 1-6 complete + 1/4 Phase 7
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
 | 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
 | 06-investment-portfolio | 4 | 14min 55s | 3min 44s |
-| 07-financial-planning | 1 | 5min 23s | 5min 23s |
+| 07-financial-planning | 2 | 8min 37s | 4min 19s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 07-01 (5min 23s), 06-04 (4min), 06-03 (3min 43s), 06-02 (3min 43s), 06-01 (3min 29s)
-- Trend: Phase 7 started - foundation plan took slightly longer due to schema extension + 6 service modules + SDK installation
+- Last 5 plans: 07-02 (3min 14s), 07-01 (5min 23s), 06-04 (4min), 06-03 (3min 43s), 06-02 (3min 43s)
+- Trend: Phase 7 API plan completed efficiently - GraphQL + SSE streaming endpoint created in just over 3 minutes
 
 *Updated after each plan completion*
 
@@ -51,6 +51,11 @@ Progress: [████████▓░] 78% (Phase 1-6 complete + 1/4 Phase 7
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **SSE streaming pattern** (07-02) — Server-Sent Events for token-by-token streaming, simpler than WebSockets for one-way streaming
+- **Disclaimer append before save** (07-02) — Add disclaimer to assistant message before database persistence, ensures always present in chat history
+- **20-message history limit** (07-02) — Load last 20 messages for conversation context, balances quality with token usage
+- **Insight invalidation on import** (07-02) — Invalidate insights after statement import (not delete), preserves history while enabling regeneration
+- **Prisma type assertion** (07-02) — Use 'as any' for extended Prisma client in service calls, standard pattern for type compatibility
 - **Anthropic Claude API for financial planning** (07-01) — Separate from OpenAI categorization, better conversational tone for advisory role
 - **25 message daily limit** (07-01) — Controls LLM API costs while providing sufficient quota for meaningful conversations
 - **6-month summary window** (07-01) — Captures seasonal patterns without excessive token usage
@@ -150,5 +155,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 07-01-PLAN.md — Foundation layer (schema + services) ready for GraphQL API
+Stopped at: Completed 07-02-PLAN.md — API layer complete (GraphQL + SSE streaming) ready for frontend
 Resume file: None
