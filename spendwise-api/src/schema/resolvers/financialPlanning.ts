@@ -213,4 +213,10 @@ export const financialPlanningResolvers = {
       });
     },
   },
+
+  ChatMessage: {
+    metadata: (parent: any) => {
+      return parent.metadata ? JSON.stringify(parent.metadata) : null;
+    },
+  },
 };

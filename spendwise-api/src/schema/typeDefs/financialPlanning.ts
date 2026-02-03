@@ -15,7 +15,7 @@ export const financialPlanningTypeDefs = gql`
     sessionId: String!
     role: String!
     content: String!
-    metadata: JSON
+    metadata: String
     createdAt: DateTime!
   }
 
