@@ -3,7 +3,7 @@ import cors from 'cors';
 import express from 'express';
 import { getUserFromToken } from '../context/auth';
 import { prisma } from '../lib/prisma';
-import { checkRateLimit, incrementUsage } from '../services/financialPlanning/rate-limiter';
+import { checkRateLimit } from '../services/financialPlanning/rate-limiter';
 import { buildFinancialSummary } from '../services/financialPlanning/financial-summarizer';
 import { streamChatResponse } from '../services/financialPlanning/claude-client';
 
@@ -56,34 +56,21 @@ chatStreamRouter.post('/stream', express.json(), async (req, res) => {
       return;
     }
 
-    // 5. Save user message to ChatMessage table
-    const userMessage = await prisma.chatMessage.create({
-      data: {
-        sessionId,
-        role: 'user',
-        content,
-      },
-    });
-
-    // 6. Increment rate limit usage
-    await incrementUsage(user.id);
-
-    // 7. Build financial summary
+    // 5. Build financial summary (user message already saved by sendChatMessage mutation)
     const financialSummary = await buildFinancialSummary(prisma as any, user.id);
 
-    // 8. Load conversation history (last 20 messages)
+    // 6. Load conversation history (last 20 messages, excluding current user message)
     const messages = await prisma.chatMessage.findMany({
       where: { sessionId },
       orderBy: { createdAt: 'asc' },
       take: 20,
     });
 
-    const conversationHistory = messages
-      .filter((m) => m.id !== userMessage.id) // Exclude the just-created message
-      .map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      }));
+    // Use all messages except the last one (current user message) as history
+    const conversationHistory = messages.slice(0, -1).map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }));
 
     // 9. Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
