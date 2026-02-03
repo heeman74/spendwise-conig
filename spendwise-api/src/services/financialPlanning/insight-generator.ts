@@ -41,9 +41,11 @@ export async function generateAndCacheInsights(
     },
   });
 
-  // Create new insight cache entries
+  // Create new insight cache entries with offset timestamps
+  // to avoid unique constraint collision on (userId, insightType, generatedAt)
+  const now = Date.now();
   const cachedInsights = await Promise.all(
-    generatedInsights.map((insight) =>
+    generatedInsights.map((insight, index) =>
       prisma.insightCache.create({
         data: {
           userId,
@@ -51,7 +53,8 @@ export async function generateAndCacheInsights(
           title: insight.title,
           content: insight.content,
           priority: insight.priority,
-          dataSnapshot: financialSummary as any, // Store the summary used to generate
+          dataSnapshot: financialSummary as any,
+          generatedAt: new Date(now + index),
         },
       })
     )
