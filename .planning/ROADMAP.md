@@ -213,11 +213,13 @@ Plans:
 4. User receives behavioral nudges (e.g., "You're on track!" or "Warning: overspending in dining")
 5. All financial advice includes disclaimer stating "Not professional financial advice"
 
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md -- Schema (ChatSession, ChatMessage, InsightCache) + backend services (Anthropic client, financial summarizer, Claude client, insight generator, goal parser, rate limiter)
+- [ ] 07-02-PLAN.md -- GraphQL API (typeDefs + resolvers for chat/insights) + SSE streaming endpoint + insight invalidation on import
+- [ ] 07-03-PLAN.md -- Frontend data layer (GraphQL queries/mutations, Apollo hooks, SSE streaming hook)
+- [ ] 07-04-PLAN.md -- Frontend UI (planning page, chat interface, insight cards, streaming messages, sidebar nav)
 
 ---
 
@@ -254,7 +256,7 @@ Plans:
 | 4. Recurring Transactions | 5/5 | Complete | 2026-02-01 |
 | 5. Net Worth Tracking | 6/6 | Complete | 2026-02-02 |
 | 6. Investment Portfolio | 4/4 | Complete | 2026-02-02 |
-| 7. Financial Planning | 0/TBD | Not started | — |
+| 7. Financial Planning | 0/4 | Planned | — |
 | 8. Unified Dashboard | 0/TBD | Not started | — |
 
 ---
