@@ -32,6 +32,8 @@ model User {
   statementImports        StatementImport[]
   merchantRules           MerchantRule[]
   netWorthSnapshots       NetWorthSnapshot[]
+  chatSessions            ChatSession[]
+  insightCaches           InsightCache[]
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 }
@@ -325,4 +327,44 @@ model NetWorthSnapshot {
   @@unique([userId, accountId, date])
   @@index([userId, date])
   @@index([accountId, date])
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String      // "user" or "assistant"
+  content   String      @db.Text
+  metadata  Json?       // for tokens, model, etc.
+  createdAt DateTime    @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+model InsightCache {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  insightType  String    // "spending_anomaly", "savings_opportunity", "investment_observation"
+  title        String
+  content      String    @db.Text
+  priority     Int       // 1 = highest impact
+  dataSnapshot Json      // financial summary used to generate
+  generatedAt  DateTime  @default(now())
+  invalidatedAt DateTime? // set when new statement imported
+
+  @@unique([userId, insightType, generatedAt])
+  @@index([userId, invalidatedAt])
 }
