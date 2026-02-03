@@ -12,6 +12,7 @@ import { statementImportTypeDefs } from './statementImport';
 import { recurringTypeDefs } from './recurring';
 import { netWorthTypeDefs } from './netWorth';
 import { investmentTypeDefs } from './investment';
+import { financialPlanningTypeDefs } from './financialPlanning';
 
 // Base types that other types extend
 const baseTypeDefs = gql`
@@ -39,4 +40,5 @@ export const typeDefs = [
   recurringTypeDefs,
   netWorthTypeDefs,
   investmentTypeDefs,
+  financialPlanningTypeDefs,
 ];

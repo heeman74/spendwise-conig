@@ -11,6 +11,7 @@ import { statementImportResolvers } from './statementImport';
 import { recurringResolvers } from './recurring';
 import { netWorthResolvers } from './netWorth';
 import { investmentResolvers } from './investment';
+import { financialPlanningResolvers } from './financialPlanning';
 
 export const resolvers = {
   DateTime: DateTimeScalar,
@@ -30,6 +31,7 @@ export const resolvers = {
     ...recurringResolvers.Query,
     ...netWorthResolvers.Query,
     ...investmentResolvers.Query,
+    ...financialPlanningResolvers.Query,
   },
 
   Mutation: {
@@ -44,6 +46,7 @@ export const resolvers = {
     ...recurringResolvers.Mutation,
     ...netWorthResolvers.Mutation,
     ...investmentResolvers.Mutation,
+    ...financialPlanningResolvers.Mutation,
   },
 
   User: userResolvers.User,
@@ -53,4 +56,5 @@ export const resolvers = {
   DashboardStats: analyticsResolvers.DashboardStats,
   PlaidItem: plaidResolvers.PlaidItem,
   InvestmentHolding: investmentResolvers.InvestmentHolding,
+  ChatSession: financialPlanningResolvers.ChatSession,
 };
