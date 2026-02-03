@@ -6,21 +6,21 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Users see their complete financial picture in one place — every account, every transaction imported from statements and automatically categorized — with AI-powered advice on how to save more and invest smarter based on their personal goals.
 
-**Current focus:** Phase 7 in progress — Financial Planning foundation complete
+**Current focus:** Phase 7 complete — Financial Planning fully delivered
 
 ## Current Position
 
 Phase: 7 of 8 (Financial Planning)
-Plan: 3 of 4 plans complete
-Status: In progress — Frontend data layer complete (hooks + SSE client)
-Last activity: 2026-02-02 — Completed 07-03-PLAN.md
+Plan: 4 of 4 plans complete
+Status: Phase complete — Planning page, chat interface, insights, sidebar nav all delivered
+Last activity: 2026-02-03 — Completed 07-04-PLAN.md
 
-Progress: [████████▓░] 84% (Phase 1-6 complete + 3/4 Phase 7)
+Progress: [█████████░] 88% (Phase 1-7 complete, Phase 8 remaining)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 4 Phase 6 + 3 Phase 7)
+- Total plans completed: 30 (2 Phase 1 + 3 Plaid before pause + 3 Phase 2 + 3 Phase 3 + 5 Phase 4 + 4 Phase 5 + 2 gap closure + 4 Phase 6 + 4 Phase 7)
 - Average duration: 3min 53s
 - Total execution time: 1.88 hours
 
@@ -35,7 +35,7 @@ Progress: [████████▓░] 84% (Phase 1-6 complete + 3/4 Phase 7
 | 05-net-worth-tracking | 4 | 15min 3s | 3min 46s |
 | 05-net-worth-tracking (gap) | 2 | 3min 25s | 1min 43s |
 | 06-investment-portfolio | 4 | 14min 55s | 3min 44s |
-| 07-financial-planning | 3 | 11min 1s | 3min 40s |
+| 07-financial-planning | 4 | ~15min | ~3min 45s |
 | Plaid-integration-foundation (paused) | 3 | 12min | 4min |
 
 **Recent Trend:**
@@ -51,6 +51,10 @@ Progress: [████████▓░] 84% (Phase 1-6 complete + 3/4 Phase 7
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **react-markdown for chat rendering** (07-04) — Supports markdown links, code blocks, formatting in AI responses
+- **Optimistic message updates** (07-04) — User messages appear instantly in chat, refetch syncs after stream completes
+- **Auto-generate insights on first load** (07-04) — First-time users get immediate value without manual action
+- **String metadata over JSON scalar** (07-04) — Avoids custom scalar complexity for chat message metadata
 - **Fetch API for SSE with auth headers** (07-03) — Use fetch with ReadableStream instead of EventSource for SSE, EventSource doesn't support Authorization header
 - **Network-only rate limit fetch policy** (07-03) — Rate limit queries always fetch fresh, cache would be stale immediately
 - **No refetch on send message** (07-03) — sendChatMessage mutation doesn't refetch, SSE stream handles response delivery
@@ -158,6 +162,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Completed 07-03-PLAN.md — Frontend data layer complete (hooks + SSE client) ready for UI
+Last session: 2026-02-03
+Stopped at: Completed 07-04-PLAN.md — Phase 7 complete, ready for Phase 8 or verification
 Resume file: None
