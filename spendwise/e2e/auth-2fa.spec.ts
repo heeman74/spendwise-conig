@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'crypto';
+import { signInWithNextAuth } from './helpers/sign-in';
 
 test.describe('Two-Factor Authentication E2E Tests', () => {
   const testPassword = 'TestPassword123!';
@@ -141,29 +142,8 @@ test.describe('Two-Factor Authentication E2E Tests', () => {
   });
 
   test.describe('Login with 2FA', () => {
-    // Mock the GraphQL loginStep1 mutation so the app always transitions to the 2FA
-    // screen, regardless of whether the credentials map to a real user in the DB.
-    test.beforeEach(async ({ page }) => {
-      await page.route('**/graphql', async (route, request) => {
-        const body = request.postDataJSON?.();
-        if (body?.operationName === 'LoginStep1') {
-          return route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-              data: {
-                loginStep1: {
-                  requiresTwoFactor: true,
-                  pendingToken: 'mock-pending-token',
-                  availableMethods: ['EMAIL', 'SMS'],
-                },
-              },
-            }),
-          });
-        }
-        return route.continue();
-      });
-    });
+    // Uses real seeded users (existing-user@example.com and multi-method-user@example.com)
+    // which have 2FA enabled, so loginStep1 returns requiresTwoFactor: true
 
     test('should show 2FA verification after credentials', async ({ page }) => {
       await page.goto('/login');
@@ -261,12 +241,9 @@ test.describe('Two-Factor Authentication E2E Tests', () => {
 
   test.describe('Settings - 2FA Management', () => {
     test.beforeEach(async ({ page }) => {
-      // Login via demo mode to establish a valid session before visiting settings
-      await page.goto('/login');
-      await page.getByRole('button', { name: /demo|try demo/i }).click();
-      await page.waitForURL(/\/dashboard/, { timeout: 10000 });
-      // Wait for the dashboard to fully render so that client-side session
-      // checks (useEffect redirects) have settled before tests navigate away.
+      // Sign in as the 2FA test user via NextAuth (bypasses 2FA for session creation)
+      // This user has emailEnabled=true, so the settings page shows real 2FA status
+      await signInWithNextAuth(page, 'existing-user@example.com', 'password123');
       await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
     });
 
@@ -284,39 +261,15 @@ test.describe('Two-Factor Authentication E2E Tests', () => {
       // Retry navigation if interrupted by a late client-side redirect (webkit)
       await page.goto('/settings').catch(() => page.goto('/settings'));
 
-      // Look for enable buttons (assuming some methods are disabled)
-      // Use toBeVisible() which auto-retries, unlike count() which is a one-shot check
+      // SMS is disabled for this user, so an enable button should be visible
       await expect(page.getByRole('button', { name: /Enable/i }).first()).toBeVisible();
     });
 
     test('should show disable button for enabled methods', async ({ page }) => {
-      // Mock GraphQL response so email 2FA appears enabled
-      await page.route('**/graphql', async (route, request) => {
-        const body = request.postDataJSON();
-        if (body?.operationName === 'GetTwoFactorStatus') {
-          return route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-              data: {
-                twoFactorStatus: {
-                  emailEnabled: true,
-                  smsEnabled: false,
-                  emailVerified: true,
-                  phoneVerified: false,
-                  phoneNumber: null,
-                  backupCodesRemaining: 8,
-                },
-              },
-            }),
-          });
-        }
-        return route.continue();
-      });
-
       // Retry navigation if interrupted by a late client-side redirect (webkit)
       await page.goto('/settings').catch(() => page.goto('/settings'));
 
+      // Email 2FA is enabled for this user, so a disable button should be visible
       const disableButtons = page.getByRole('button', { name: /Disable/i });
       await expect(disableButtons.first()).toBeVisible();
     });

@@ -75,9 +75,13 @@ function detectAccountFromText(text: string, _fileName: string): DetectedAccount
     }
   }
 
-  if (headerLower.includes('credit card') || headerLower.includes('card statement') || headerLower.includes('card account')) {
+  if (
+    headerLower.includes('credit card') || headerLower.includes('card statement') ||
+    headerLower.includes('card account') || /\bvisa\b/i.test(headerLower) ||
+    /\bmastercard\b/i.test(headerLower) || /\bsignature.*card\b/i.test(headerLower)
+  ) {
     account.accountType = 'CREDIT';
-  } else if (/savings\b/i.test(headerLower)) {
+  } else if (/\bsavings\b/i.test(headerLower) && !/\bsavings\s+of\b/i.test(headerLower)) {
     account.accountType = 'SAVINGS';
   } else if (/checking\b/i.test(headerLower)) {
     account.accountType = 'CHECKING';
@@ -113,6 +117,7 @@ const TABLE_START_PATTERNS = [
   /\baccount\s+activity\b/i,
   /\btransaction\s+activity\b/i,
   /\baccount\s+detail/i,
+  /^\s*transactions\s*$/i,
 ];
 
 // Markers that signal the END of the transaction history table
@@ -120,6 +125,7 @@ const TABLE_END_PATTERNS = [
   /\bdaily\s+ending\s+balance\b/i,
   /\bbalance\s+summary\b/i,
   /\byear.to.date\s+summary/i,
+  /\byear.to.date\b/i,
   /\bworksheet\s+to\b/i,
   /\bcheck\s+images?\b/i,
   /\bimportant\s+(?:account\s+)?information\b/i,
@@ -130,11 +136,13 @@ const TABLE_END_PATTERNS = [
   /\bmonthly\s+service\s+fee\b/i,
   /\baccount\s+(?:transaction\s+)?fees?\s+summary\b/i,
   /\baccount\s+balance\s+calculation\b/i,
+  /\binterest\s+charge\s+calculation\b/i,
   /^\s*totals?\s/i,
 ];
 
 // Sub-section headers and their types (for section-based formats only)
 const SUB_SECTION_PATTERNS: [RegExp, TransactionType][] = [
+  [/^payments?\s*$/i, 'INCOME'],
   [/\bdeposits?\b.*\badditions?\b/i, 'INCOME'],
   [/\bdeposits?\b.*\bcredits?\b/i, 'INCOME'],
   [/\bcredits?\s+(?:and\s+)?additions?\b/i, 'INCOME'],
@@ -165,6 +173,7 @@ const SKIP_LINE_PATTERNS = [
   /\bnew\s+balance\b/i,
   /\bbalance\s+forward\b/i,
   /\btotal\s+(?:deposits|withdrawals|credits|debits|charges|fees|interest)\b/i,
+  /\btotal\s+.*\bfor\s+this\s+period\b/i,
   /\boverdraft\s+protection\b/i,
 ];
 
@@ -209,6 +218,74 @@ function detectColumnFormat(lines: string[], startIdx: number): boolean {
   }
 
   return hasDeposit && hasWithdrawal;
+}
+
+// Detect credit card format (has Credits and Charges column headers)
+function detectCreditCardFormat(lines: string[], startIdx: number): boolean {
+  const headerLines: string[] = [];
+  for (let i = startIdx; i < Math.min(startIdx + 15, lines.length); i++) {
+    // Stop at first transaction-like line (card-ending + date or date + date)
+    if (/^\s*\d{4}\s+\d{1,2}\/\d{1,2}/.test(lines[i])) break;
+    if (lineStartsWithDate(lines[i])) break;
+    headerLines.push(lines[i].toLowerCase());
+  }
+  const joined = headerLines.join(' ');
+  return /\bcredits?\b/.test(joined) && /\bcharges?\b/.test(joined);
+}
+
+// Parse a credit card transaction line
+// Formats:
+//   With card ending: "3087 11/26 11/28 REF_NUMBER DESCRIPTION 5.23"
+//   Without card ending: "12/22 12/22 REF_NUMBER DESCRIPTION 1,539.37"
+function parseCreditCardLine(
+  line: string,
+  currentYear: number,
+): { transDate: Date; dateKey: string; description: string; amount: number } | null {
+  let rest = line;
+
+  // Strip optional 4-digit card ending prefix
+  const cardPrefix = rest.match(/^\s*(\d{4})\s+/);
+  if (cardPrefix) {
+    // Verify the next part is a date, not something else
+    const afterPrefix = rest.substring(cardPrefix[0].length);
+    if (/^\d{1,2}\/\d{1,2}\s/.test(afterPrefix)) {
+      rest = afterPrefix;
+    }
+  }
+
+  // Must start with a date (trans date)
+  const transDateMatch = rest.match(/^\s*(\d{1,2}\/\d{1,2})\s+/);
+  if (!transDateMatch) return null;
+  rest = rest.substring(transDateMatch[0].length);
+
+  // Must have a second date (post date)
+  const postDateMatch = rest.match(/^(\d{1,2}\/\d{1,2})\s+/);
+  if (!postDateMatch) return null;
+  rest = rest.substring(postDateMatch[0].length);
+
+  // Skip reference number (alphanumeric token)
+  const refMatch = rest.match(/^(\S+)\s+/);
+  if (!refMatch) return null;
+  rest = rest.substring(refMatch[0].length);
+
+  // Extract amount from end of remaining text
+  const amountMatch = rest.match(/([\d,]+\.\d{2})\s*$/);
+  if (!amountMatch) return null;
+
+  const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+  if (isNaN(amount) || amount === 0) return null;
+
+  // Description is everything before the amount
+  const description = rest.substring(0, rest.lastIndexOf(amountMatch[1])).trim() || 'Transaction';
+
+  // Parse trans date
+  const dateParts = transDateMatch[1].split('/');
+  const month = parseInt(dateParts[0]) - 1;
+  const day = parseInt(dateParts[1]);
+  const date = new Date(currentYear, month, day);
+  if (isNaN(date.getTime())) return null;
+
+  return { transDate: date, dateKey: `${month + 1}/${day}`, description, amount };
 }
 
 // Extract beginning balance from statement header
@@ -355,8 +432,9 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
 
   if (tableStartIdx === -1) tableStartIdx = 0;
 
-  // ── Step 2: Detect format (column-based vs section-based) ──
+  // ── Step 2: Detect format (column-based vs section-based vs credit-card) ──
   const isColumnFormat = foundExplicitStart && detectColumnFormat(lines, tableStartIdx);
+  const isCreditCardFormat = foundExplicitStart && !isColumnFormat && detectCreditCardFormat(lines, tableStartIdx);
 
   // ── Step 3: Detect statement year ──
   let currentYear = new Date().getFullYear();
@@ -427,16 +505,19 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
     const line = lines[i];
     const lower = line.toLowerCase();
 
+    // Skip continued/page headers
+    if (/\(continued\)/i.test(lower) || TABLE_START_PATTERNS.some((p) => p.test(lower))) continue;
+    if (/^--\s*\d+\s+of\s+\d+\s*--$/.test(line)) continue;
+    if (/page\s+\d+\s+of\s+\d+/i.test(lower)) continue;
+
+    // Skip balance/total lines (before table-end check to avoid false end on section totals)
+    if (SKIP_LINE_PATTERNS.some((p) => p.test(line))) continue;
+
     // Check for table-end markers
     if (foundExplicitStart && TABLE_END_PATTERNS.some((p) => p.test(lower))) {
       pendingDate = null;
       break;
     }
-
-    // Skip continued/page headers
-    if (/\(continued\)/i.test(lower) || TABLE_START_PATTERNS.some((p) => p.test(lower))) continue;
-    if (/^--\s*\d+\s+of\s+\d+\s*--$/.test(line)) continue;
-    if (/page\s+\d+\s+of\s+\d+/i.test(lower)) continue;
 
     // Check for sub-section headers
     if (isLineAHeader(line)) {
@@ -455,8 +536,22 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
       continue;
     }
 
-    // Skip balance/total lines
-    if (SKIP_LINE_PATTERNS.some((p) => p.test(line))) continue;
+    // ── Credit card format: try parsing as card transaction line ──
+    if (isCreditCardFormat) {
+      const ccTxn = parseCreditCardLine(line, currentYear);
+      if (ccTxn) {
+        pendingDate = null;
+        pendingDescription = '';
+        pendingDateKey = '';
+        sectionTransactions.push({
+          date: ccTxn.transDate,
+          amount: ccTxn.amount,
+          description: ccTxn.description,
+          type: currentType,
+        });
+        continue;
+      }
+    }
 
     // ── Try to parse as a transaction or continuation ──
     const dateMatch = line.match(DATE_REGEX);

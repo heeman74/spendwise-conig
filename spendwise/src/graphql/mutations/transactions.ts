@@ -32,3 +32,37 @@ export const DELETE_TRANSACTION = gql`
     deleteTransaction(id: $id)
   }
 `;
+
+export const CREATE_USER_CATEGORY = gql`
+  mutation CreateUserCategory($input: CreateUserCategoryInput!) {
+    createUserCategory(input: $input) {
+      id
+      name
+      type
+      isDefault
+      sortOrder
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_USER_CATEGORY = gql`
+  mutation UpdateUserCategory($id: ID!, $input: UpdateUserCategoryInput!) {
+    updateUserCategory(id: $id, input: $input) {
+      id
+      name
+      type
+      isDefault
+      sortOrder
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_USER_CATEGORY = gql`
+  mutation DeleteUserCategory($id: ID!) {
+    deleteUserCategory(id: $id)
+  }
+`;

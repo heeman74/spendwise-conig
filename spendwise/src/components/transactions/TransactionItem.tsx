@@ -11,10 +11,11 @@ interface TransactionItemProps {
   onEdit?: (transaction: Transaction) => void;
   onDelete?: (id: string) => void;
   onMarkRecurring?: (transaction: Transaction) => void;
+  onCategoryClick?: (category: string) => void;
   showConfidenceDetail?: boolean;
 }
 
-export default function TransactionItem({ transaction, onEdit, onDelete, onMarkRecurring, showConfidenceDetail }: TransactionItemProps) {
+export default function TransactionItem({ transaction, onEdit, onDelete, onMarkRecurring, onCategoryClick, showConfidenceDetail }: TransactionItemProps) {
   const typeVariant = {
     INCOME: 'success' as const,
     EXPENSE: 'danger' as const,
@@ -43,7 +44,10 @@ export default function TransactionItem({ transaction, onEdit, onDelete, onMarkR
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <p
+                className="text-sm font-medium text-gray-900 dark:text-white truncate"
+                title={transaction.merchant || transaction.description || transaction.category}
+              >
                 {transaction.merchant || transaction.description || transaction.category}
               </p>
               {transaction.recurringInfo && (
@@ -56,7 +60,10 @@ export default function TransactionItem({ transaction, onEdit, onDelete, onMarkR
               )}
             </div>
             {transaction.description && transaction.merchant && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <p
+                className="text-xs text-gray-500 dark:text-gray-400 truncate"
+                title={transaction.description}
+              >
                 {transaction.description}
               </p>
             )}
@@ -69,7 +76,9 @@ export default function TransactionItem({ transaction, onEdit, onDelete, onMarkR
             style={{
               backgroundColor: `${getCategoryColor(transaction.category)}20`,
               color: getCategoryColor(transaction.category),
+              cursor: onCategoryClick ? 'pointer' : undefined,
             }}
+            onClick={onCategoryClick ? () => onCategoryClick(transaction.category) : undefined}
           >
             {transaction.category}
           </Badge>

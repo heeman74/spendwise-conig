@@ -5,51 +5,82 @@ import Button from '@/components/ui/Button';
 
 const ALLOWED_EXTENSIONS = ['.csv', '.ofx', '.qfx', '.pdf'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILES = 10;
 
 interface FileDropzoneProps {
-  onFileSelected: (file: File) => void;
+  onFilesSelected: (files: File[]) => void;
   disabled?: boolean;
 }
 
-export default function FileDropzone({ onFileSelected, disabled }: FileDropzoneProps) {
+export default function FileDropzone({ onFilesSelected, disabled }: FileDropzoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = useCallback((file: File): string | null => {
     const ext = file.name.toLowerCase().match(/\.[^.]+$/)?.[0];
     if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
-      return `Unsupported file type. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`;
+      return `Unsupported file type: ${file.name}. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`;
     }
     if (file.size > MAX_FILE_SIZE) {
-      return 'File too large. Maximum size is 10MB.';
+      return `${file.name} is too large. Maximum size is 10MB.`;
     }
     if (file.size === 0) {
-      return 'File is empty.';
+      return `${file.name} is empty.`;
     }
     return null;
   }, []);
 
-  const handleFile = useCallback((file: File) => {
-    const err = validateFile(file);
-    if (err) {
-      setError(err);
-      setSelectedFile(null);
-      return;
+  const addFiles = useCallback((newFiles: FileList | File[]) => {
+    const files = Array.from(newFiles);
+    const errors: string[] = [];
+    const validFiles: File[] = [];
+
+    for (const file of files) {
+      const err = validateFile(file);
+      if (err) {
+        errors.push(err);
+        continue;
+      }
+      validFiles.push(file);
     }
-    setError(null);
-    setSelectedFile(file);
+
+    setSelectedFiles((prev) => {
+      const existingNames = new Set(prev.map((f) => f.name));
+      const deduped = validFiles.filter((f) => {
+        if (existingNames.has(f.name)) {
+          errors.push(`${f.name} is already selected.`);
+          return false;
+        }
+        existingNames.add(f.name);
+        return true;
+      });
+
+      const combined = [...prev, ...deduped];
+      if (combined.length > MAX_FILES) {
+        errors.push(`Maximum ${MAX_FILES} files allowed. Some files were not added.`);
+        return combined.slice(0, MAX_FILES);
+      }
+      return combined;
+    });
+
+    setError(errors.length > 0 ? errors.join(' ') : null);
   }, [validateFile]);
+
+  const removeFile = useCallback((fileName: string) => {
+    setSelectedFiles((prev) => prev.filter((f) => f.name !== fileName));
+    setError(null);
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     if (disabled) return;
-
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  }, [disabled, handleFile]);
+    if (e.dataTransfer.files.length > 0) {
+      addFiles(e.dataTransfer.files);
+    }
+  }, [disabled, addFiles]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -61,15 +92,18 @@ export default function FileDropzone({ onFileSelected, disabled }: FileDropzoneP
   }, []);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file);
-  }, [handleFile]);
+    if (e.target.files && e.target.files.length > 0) {
+      addFiles(e.target.files);
+    }
+    // Reset input so the same files can be re-selected
+    if (inputRef.current) inputRef.current.value = '';
+  }, [addFiles]);
 
   const handleUpload = useCallback(() => {
-    if (selectedFile) {
-      onFileSelected(selectedFile);
+    if (selectedFiles.length > 0) {
+      onFilesSelected(selectedFiles);
     }
-  }, [selectedFile, onFileSelected]);
+  }, [selectedFiles, onFilesSelected]);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -121,6 +155,7 @@ export default function FileDropzone({ onFileSelected, disabled }: FileDropzoneP
           ref={inputRef}
           type="file"
           accept=".csv,.ofx,.qfx,.pdf"
+          multiple
           onChange={handleInputChange}
           className="hidden"
           disabled={disabled}
@@ -133,13 +168,13 @@ export default function FileDropzone({ onFileSelected, disabled }: FileDropzoneP
         </div>
 
         <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-          {isDragOver ? 'Drop your file here' : 'Drag and drop your statement file'}
+          {isDragOver ? 'Drop your files here' : 'Drag and drop your statement files'}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          or click to browse
+          or click to browse — select multiple files at once
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500">
-          Supports CSV, OFX, QFX, and PDF files up to 10MB
+          Supports CSV, OFX, QFX, and PDF files up to 10MB each (max {MAX_FILES} files)
         </p>
       </div>
 
@@ -149,39 +184,41 @@ export default function FileDropzone({ onFileSelected, disabled }: FileDropzoneP
         </div>
       )}
 
-      {selectedFile && !error && (
-        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            {getFileIcon(selectedFile.name)}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {selectedFile.name}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {formatFileSize(selectedFile.size)}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+      {selectedFiles.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
+          {selectedFiles.map((file) => (
+            <div key={file.name} className="flex items-center gap-3 p-3">
+              {getFileIcon(file.name)}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {file.name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {formatFileSize(file.size)}
+                </p>
+              </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedFile(null);
-                  if (inputRef.current) inputRef.current.value = '';
+                  removeFile(file.name);
                 }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-          </div>
-          <div className="mt-3">
+          ))}
+
+          <div className="p-3">
             <Button onClick={handleUpload} disabled={disabled} className="w-full">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              Upload and Parse
+              {selectedFiles.length === 1
+                ? 'Upload and Parse'
+                : `Upload and Parse ${selectedFiles.length} Files`}
             </Button>
           </div>
         </div>

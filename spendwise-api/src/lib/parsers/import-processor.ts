@@ -5,6 +5,7 @@ import { categorizeTransactions } from './categorizer';
 import { categorizeTransactionsAI } from '../ai';
 import { detectDuplicates } from './dedup';
 import { matchAccount } from './account-matcher';
+import { ensureUserCategoriesSeeded } from '../constants';
 import type { ParsedStatement, ImportPreviewData } from './types';
 
 const PREVIEW_TTL = 3600; // 1 hour cache for preview data
@@ -54,6 +55,9 @@ export async function processStatementUpload(
       });
       return;
     }
+
+    // Ensure user categories are seeded before categorization
+    await ensureUserCategoriesSeeded(prisma, userId);
 
     // Auto-categorize (AI with keyword fallback)
     let categorized;

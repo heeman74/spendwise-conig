@@ -8,8 +8,7 @@ interface Step {
 const STEPS: Step[] = [
   { label: 'Upload', key: 'upload' },
   { label: 'Parse', key: 'parse' },
-  { label: 'Preview', key: 'preview' },
-  { label: 'Import', key: 'import' },
+  { label: 'Review', key: 'preview' },
   { label: 'Done', key: 'done' },
 ];
 

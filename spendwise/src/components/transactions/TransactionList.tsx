@@ -5,7 +5,7 @@ import TransactionItem from './TransactionItem';
 import Spinner from '../ui/Spinner';
 import type { Transaction } from '@/types';
 
-type SortField = 'DATE' | 'AMOUNT' | 'CATEGORY';
+type SortField = 'DATE' | 'AMOUNT' | 'CATEGORY' | 'CREATED_AT';
 type SortOrder = 'ASC' | 'DESC';
 
 export interface SortState {
@@ -19,6 +19,7 @@ interface TransactionListProps {
   onEdit?: (transaction: Transaction) => void;
   onDelete?: (id: string) => void;
   onMarkRecurring?: (transaction: Transaction) => void;
+  onCategoryClick?: (category: string) => void;
   sort?: SortState;
   onSort?: (sort: SortState) => void;
   showConfidenceDetail?: boolean;
@@ -55,6 +56,7 @@ export default function TransactionList({
   onEdit,
   onDelete,
   onMarkRecurring,
+  onCategoryClick,
   sort,
   onSort,
   showConfidenceDetail,
@@ -150,6 +152,7 @@ export default function TransactionList({
             onEdit={onEdit}
             onDelete={onDelete}
             onMarkRecurring={onMarkRecurring}
+            onCategoryClick={onCategoryClick}
             showConfidenceDetail={showConfidenceDetail}
           />
         ))}

@@ -4,6 +4,7 @@ import { requireAuth, NotFoundError } from '../../middleware/authMiddleware';
 import { invalidateCache } from '../../lib/redis';
 import { parseDecimal } from '../../lib/utils';
 import { createOrUpdateMerchantRule, getMerchantRules, deleteMerchantRule } from '../../lib/merchant-rules';
+import { ensureUserCategoriesSeeded } from '../../lib/constants';
 
 interface TransactionFilterInput {
   search?: string;
@@ -18,7 +19,7 @@ interface TransactionFilterInput {
 }
 
 interface TransactionSortInput {
-  field?: 'DATE' | 'AMOUNT' | 'CATEGORY';
+  field?: 'DATE' | 'AMOUNT' | 'CATEGORY' | 'CREATED_AT';
   order?: 'ASC' | 'DESC';
 }
 
@@ -97,6 +98,7 @@ export const transactionResolvers = {
       if (sortField === 'date') orderBy.date = sortOrder;
       else if (sortField === 'amount') orderBy.amount = sortOrder;
       else if (sortField === 'category') orderBy.category = sortOrder;
+      else if (sortField === 'created_at') orderBy.createdAt = sortOrder;
       else orderBy.date = 'desc';
 
       const [transactions, totalCount] = await Promise.all([
@@ -159,13 +161,34 @@ export const transactionResolvers = {
     categories: async (_: unknown, __: unknown, context: Context) => {
       const user = requireAuth(context);
 
-      const transactions = await context.prisma.transaction.findMany({
-        where: { userId: user.id },
-        select: { category: true },
-        distinct: ['category'],
-      });
+      // Merge UserCategory names with transaction-derived categories
+      await ensureUserCategoriesSeeded(context.prisma, user.id);
+      const [userCategories, transactions] = await Promise.all([
+        context.prisma.userCategory.findMany({
+          where: { userId: user.id },
+          select: { name: true },
+          orderBy: { sortOrder: 'asc' },
+        }),
+        context.prisma.transaction.findMany({
+          where: { userId: user.id },
+          select: { category: true },
+          distinct: ['category'],
+        }),
+      ]);
 
-      return transactions.map((t) => t.category);
+      const categorySet = new Set<string>();
+      for (const uc of userCategories) categorySet.add(uc.name);
+      for (const t of transactions) categorySet.add(t.category);
+      return Array.from(categorySet);
+    },
+
+    userCategories: async (_: unknown, __: unknown, context: Context) => {
+      const user = requireAuth(context);
+      await ensureUserCategoriesSeeded(context.prisma, user.id);
+      return context.prisma.userCategory.findMany({
+        where: { userId: user.id },
+        orderBy: { sortOrder: 'asc' },
+      });
     },
 
     merchantRules: async (
@@ -359,6 +382,105 @@ export const transactionResolvers = {
       await context.prisma.transaction.delete({ where: { id } });
       await invalidateCache(`user:${user.id}:*`);
 
+      return true;
+    },
+
+    createUserCategory: async (
+      _: unknown,
+      { input }: { input: { name: string; type?: string } },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+      await ensureUserCategoriesSeeded(context.prisma, user.id);
+
+      // Get next sortOrder
+      const maxOrder = await context.prisma.userCategory.aggregate({
+        where: { userId: user.id },
+        _max: { sortOrder: true },
+      });
+      const nextOrder = (maxOrder._max.sortOrder ?? -1) + 1;
+
+      return context.prisma.userCategory.create({
+        data: {
+          userId: user.id,
+          name: input.name.trim(),
+          type: input.type || 'EXPENSE',
+          isDefault: false,
+          sortOrder: nextOrder,
+        },
+      });
+    },
+
+    updateUserCategory: async (
+      _: unknown,
+      { id, input }: { id: string; input: { name?: string; type?: string; sortOrder?: number } },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      const existing = await context.prisma.userCategory.findFirst({
+        where: { id, userId: user.id },
+      });
+      if (!existing) {
+        throw new NotFoundError('UserCategory');
+      }
+
+      const data: any = {};
+      if (input.name !== undefined) data.name = input.name.trim();
+      if (input.type !== undefined) data.type = input.type;
+      if (input.sortOrder !== undefined) data.sortOrder = input.sortOrder;
+
+      const updated = await context.prisma.userCategory.update({
+        where: { id },
+        data,
+      });
+
+      // If name changed, cascade rename to transactions and merchant rules
+      if (input.name && input.name.trim() !== existing.name) {
+        const oldName = existing.name;
+        const newName = input.name.trim();
+
+        await context.prisma.transaction.updateMany({
+          where: { userId: user.id, category: oldName },
+          data: { category: newName },
+        });
+
+        await context.prisma.merchantRule.updateMany({
+          where: { userId: user.id, category: oldName },
+          data: { category: newName },
+        });
+
+        await invalidateCache(`user:${user.id}:*`);
+      }
+
+      return updated;
+    },
+
+    deleteUserCategory: async (
+      _: unknown,
+      { id }: { id: string },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      const existing = await context.prisma.userCategory.findFirst({
+        where: { id, userId: user.id },
+      });
+      if (!existing) {
+        throw new NotFoundError('UserCategory');
+      }
+
+      // Check if transactions exist with this category
+      const txnCount = await context.prisma.transaction.count({
+        where: { userId: user.id, category: existing.name },
+      });
+      if (txnCount > 0) {
+        throw new Error(
+          `Cannot delete category "${existing.name}" — ${txnCount} transaction${txnCount > 1 ? 's' : ''} use this category. Rename it instead or recategorize those transactions first.`
+        );
+      }
+
+      await context.prisma.userCategory.delete({ where: { id } });
       return true;
     },
   },

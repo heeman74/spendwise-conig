@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { signInWithNextAuth } from './helpers/sign-in';
 
 test.describe('Transactions', () => {
-  // Login via demo mode before each test
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
-    await page.getByRole('button', { name: /demo|try demo/i }).click();
-    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+    await signInWithNextAuth(page, 'demo@spendwise.com', 'demo123456');
     await page.getByRole('link', { name: /transactions/i }).first().click();
     await page.waitForURL(/\/transactions/, { timeout: 10000 });
+    // Wait for transactions to load from the API
+    await expect(page.getByText(/Showing \d+ of \d+ transactions/)).toBeVisible({ timeout: 15000 });
   });
 
   test.describe('Transactions List', () => {
@@ -16,9 +16,6 @@ test.describe('Transactions', () => {
     });
 
     test('should display transaction items', async ({ page }) => {
-      // Wait for transactions to load
-      await page.waitForLoadState('domcontentloaded');
-
       // Check for transaction content (amounts with dollar signs)
       const transactionAmounts = page.locator('text=/\\$[\\d,]+\\.\\d{2}/');
       await expect(transactionAmounts.first()).toBeVisible({ timeout: 5000 });
@@ -26,7 +23,7 @@ test.describe('Transactions', () => {
 
     test('should display transaction details', async ({ page }) => {
       // Each transaction should have merchant/description and amount
-      const transactionItem = page.locator('[data-testid="transaction-item"], [class*="transaction"]').first();
+      const transactionItem = page.locator('tr').nth(1); // First data row
 
       if (await transactionItem.isVisible().catch(() => false)) {
         // Check for amount
@@ -40,7 +37,7 @@ test.describe('Transactions', () => {
       // The transactions page should be visible
       await expect(page.getByRole('heading', { name: /transactions/i })).toBeVisible();
 
-      // Page should have some way to filter/search (varies by viewport)
+      // Page should have search input and filter dropdowns
       const hasSearch = await page.getByPlaceholder(/search/i).first().isVisible().catch(() => false);
       const hasFilterButton = await page.getByRole('button', { name: /filter|export/i }).first().isVisible().catch(() => false);
 
@@ -49,18 +46,12 @@ test.describe('Transactions', () => {
     });
 
     test('should filter by transaction type', async ({ page }) => {
-      // Wait for transactions to load
-      await page.waitForLoadState('domcontentloaded');
-
-      // Find the type filter dropdown
-      const typeFilter = page.getByRole('combobox').filter({ hasText: /type/i })
-        .or(page.locator('select').filter({ hasText: /all types/i }))
-        .or(page.locator('select').first());
+      // Find the type filter dropdown (first select in the filters area)
+      const typeFilter = page.getByRole('combobox').first();
 
       if (await typeFilter.isVisible().catch(() => false)) {
         // Select 'Expense' filter by index
         await typeFilter.selectOption({ index: 1 }).catch(async () => {
-          // If selectOption fails, try clicking and selecting
           await typeFilter.click();
           await page.getByRole('option', { name: /expense/i }).click().catch(() => {});
         });
@@ -69,18 +60,13 @@ test.describe('Transactions', () => {
 
         // Verify the filter was applied (transaction list should update)
         const updatedText = await page.getByText(/showing.*transactions/i).textContent().catch(() => '');
-        // Text should change or stay the same (both are valid)
         expect(updatedText).toBeTruthy();
       }
     });
 
     test('should filter by category', async ({ page }) => {
-      // Wait for transactions to load
-      await page.waitForLoadState('domcontentloaded');
-
-      // Find the category filter dropdown (usually the second combobox)
-      const categoryFilter = page.getByRole('combobox').filter({ hasText: /categor/i })
-        .or(page.locator('select').filter({ hasText: /all categories/i }));
+      // Find the category filter dropdown (second combobox)
+      const categoryFilter = page.getByRole('combobox').nth(1);
 
       if (await categoryFilter.isVisible().catch(() => false)) {
         // Select a specific category by index
@@ -89,20 +75,14 @@ test.describe('Transactions', () => {
           await page.getByRole('option', { name: /food/i }).first().click().catch(() => {});
         });
 
-        await page.waitForLoadState('domcontentloaded');
-
-        // Verify transactions are displayed (filtered results may be empty or populated)
-        const transactionTable = page.getByRole('table')
-          .or(page.locator('[class*="transaction"]'));
-
-        expect(await transactionTable.isVisible().catch(() => true)).toBeTruthy();
+        // Wait for filtered data to load (table appears or empty state)
+        await expect(
+          page.getByRole('table').or(page.getByText(/No transactions/))
+        ).toBeVisible({ timeout: 10000 });
       }
     });
 
     test('should search transactions', async ({ page }) => {
-      // Wait for page to load
-      await page.waitForLoadState('domcontentloaded');
-
       // Get the search box in main content area
       const searchBox = page.getByRole('main').getByPlaceholder(/search/i);
 
@@ -122,9 +102,6 @@ test.describe('Transactions', () => {
     });
 
     test('should combine multiple filters', async ({ page }) => {
-      // Wait for transactions to load
-      await page.waitForLoadState('domcontentloaded');
-
       const typeFilter = page.getByRole('combobox').first();
       const categoryFilter = page.getByRole('combobox').nth(1);
 
@@ -141,18 +118,15 @@ test.describe('Transactions', () => {
         await categoryFilter.selectOption({ index: 1 }).catch(() => {});
         await page.waitForLoadState('domcontentloaded');
 
-        // Verify both filters are active
-        const transactionList = page.getByRole('table')
-          .or(page.locator('[class*="transaction-list"]'));
+        // Verify both filters are active — table or "Showing" text should be present
+        const showingText = await page.getByText(/showing.*transactions/i).isVisible().catch(() => false);
+        const tableVisible = await page.getByRole('table').isVisible().catch(() => false);
 
-        expect(await transactionList.isVisible().catch(() => true)).toBeTruthy();
+        expect(showingText || tableVisible).toBe(true);
       }
     });
 
     test('should reset filters', async ({ page }) => {
-      // Wait for transactions to load
-      await page.waitForLoadState('domcontentloaded');
-
       const typeFilter = page.getByRole('combobox').first();
 
       if (await typeFilter.isVisible().catch(() => false)) {
@@ -194,7 +168,7 @@ test.describe('Transactions', () => {
     });
 
     test('should have required form fields', async ({ page }) => {
-      const addButton = page.getByRole('button', { name: /add|new|\+/i });
+      const addButton = page.getByRole('button', { name: /add.*transaction/i });
       await addButton.first().click();
 
       // Check for form fields
@@ -265,12 +239,12 @@ test.describe('Transactions', () => {
 
   test.describe('Transaction Details', () => {
     test('should show transaction type indicator', async ({ page }) => {
-      // Transactions should indicate income vs expense via category or amount sign
+      // Transactions should indicate income vs expense via amount prefix
+      const hasExpenseAmount = await page.locator('text=/^-\\$[\\d,]+\\.\\d{2}$/').first().isVisible().catch(() => false);
+      const hasIncomeAmount = await page.locator('text=/^\\+\\$[\\d,]+\\.\\d{2}$/').first().isVisible().catch(() => false);
       const hasIncome = await page.getByText('Income').first().isVisible().catch(() => false);
-      const hasExpense = await page.getByText(/^-\$/).first().isVisible().catch(() => false);
-      const hasPositiveAmount = await page.getByText(/^\+\$/).first().isVisible().catch(() => false);
 
-      expect(hasIncome || hasExpense || hasPositiveAmount).toBe(true);
+      expect(hasExpenseAmount || hasIncomeAmount || hasIncome).toBe(true);
     });
 
     test('should display transaction date', async ({ page }) => {
@@ -280,34 +254,27 @@ test.describe('Transactions', () => {
     });
 
     test('should display transaction category', async ({ page }) => {
-      // Wait for transactions to load
-      await page.waitForLoadState('domcontentloaded');
-
       // Check for the Category column header
       const categoryHeader = await page.getByRole('columnheader', { name: /category/i }).isVisible().catch(() => false);
 
-      // Check for specific category text (case-insensitive, exact match)
+      // Check for specific category text
       const hasIncome = await page.locator('text=/^Income$/i').first().isVisible().catch(() => false);
       const hasTravel = await page.locator('text=/^Travel$/i').first().isVisible().catch(() => false);
       const hasEducation = await page.locator('text=/^Education$/i').first().isVisible().catch(() => false);
       const hasEntertainment = await page.locator('text=/^Entertainment$/i').first().isVisible().catch(() => false);
+      const hasFoodDining = await page.locator('text=/Food/i').first().isVisible().catch(() => false);
+      const hasShopping = await page.locator('text=/^Shopping$/i').first().isVisible().catch(() => false);
 
-      expect(categoryHeader || hasIncome || hasTravel || hasEducation || hasEntertainment).toBe(true);
+      expect(categoryHeader || hasIncome || hasTravel || hasEducation || hasEntertainment || hasFoodDining || hasShopping).toBe(true);
     });
   });
 
   test.describe('Sorting', () => {
     test('should have sort options', async ({ page }) => {
-      const sortButton = page.getByRole('button', { name: /sort/i })
-        .or(page.getByRole('combobox', { name: /sort/i }))
-        .or(page.locator('select[name*="sort"]'));
-
-      // Sorting may be integrated into table headers
+      // Sorting is integrated into table column headers
       const tableHeader = page.getByRole('columnheader');
 
-      const hasSort =
-        (await sortButton.isVisible().catch(() => false)) ||
-        (await tableHeader.first().isVisible().catch(() => false));
+      const hasSort = await tableHeader.first().isVisible().catch(() => false);
 
       expect(hasSort).toBe(true);
     });

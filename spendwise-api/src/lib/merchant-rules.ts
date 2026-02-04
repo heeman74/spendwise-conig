@@ -16,7 +16,8 @@ export async function applyMerchantRuleRetroactively(
         userId,
         categorySource: { notIn: ['manual'] },
         OR: [
-          { merchant: { contains: merchantPattern, mode: 'insensitive' } },
+          { merchant: { startsWith: merchantDisplay, mode: 'insensitive' } },
+          { merchant: { equals: merchantDisplay, mode: 'insensitive' } },
         ],
       },
       data: {

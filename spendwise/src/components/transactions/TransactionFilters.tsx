@@ -1,27 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import type { TransactionFilters as FiltersType, TransactionType } from '@/types';
-
-// NOTE: Categories hardcoded here - must match VALID_CATEGORIES in spendwise-api/src/lib/constants.ts
-const categories = [
-  { value: '', label: 'All Categories' },
-  { value: 'Food & Dining', label: 'Food & Dining' },
-  { value: 'Shopping', label: 'Shopping' },
-  { value: 'Transportation', label: 'Transportation' },
-  { value: 'Bills & Utilities', label: 'Bills & Utilities' },
-  { value: 'Entertainment', label: 'Entertainment' },
-  { value: 'Healthcare', label: 'Healthcare' },
-  { value: 'Travel', label: 'Travel' },
-  { value: 'Education', label: 'Education' },
-  { value: 'Personal Care', label: 'Personal Care' },
-  { value: 'Income', label: 'Income' },
-  { value: 'Transfer', label: 'Transfer' },
-  { value: 'Other', label: 'Other' },
-];
 
 const transactionTypes = [
   { value: '', label: 'All Types' },
@@ -35,6 +18,7 @@ interface TransactionFiltersProps {
   onFiltersChange: (filters: Partial<FiltersType>) => void;
   onClear: () => void;
   accounts?: { value: string; label: string }[];
+  categories?: string[];
 }
 
 export default function TransactionFilters({
@@ -42,7 +26,16 @@ export default function TransactionFilters({
   onFiltersChange,
   onClear,
   accounts = [],
+  categories: categoryNames = [],
 }: TransactionFiltersProps) {
+  const categoryOptions = useMemo(() => {
+    const opts = [{ value: '', label: 'All Categories' }];
+    const sorted = [...categoryNames].sort((a, b) => a.localeCompare(b));
+    for (const name of sorted) {
+      opts.push({ value: name, label: name });
+    }
+    return opts;
+  }, [categoryNames]);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const hasActiveFilters =
@@ -86,7 +79,7 @@ export default function TransactionFilters({
             className="w-32"
           />
           <Select
-            options={categories}
+            options={categoryOptions}
             value={filters.category || ''}
             onChange={(e) => onFiltersChange({ category: e.target.value || null })}
             className="w-40"

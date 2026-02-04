@@ -14,7 +14,7 @@ export const recurringTypeDefs = gql`
     averageAmount: Decimal!
     lastDate: DateTime!
     firstDate: DateTime!
-    nextExpectedDate: DateTime!
+    nextExpectedDate: DateTime
     status: String!
     transactionIds: [String!]!
     createdAt: DateTime!

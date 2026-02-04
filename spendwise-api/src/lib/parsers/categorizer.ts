@@ -8,18 +8,20 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
     'doordash', 'uber eats', 'postmates', 'seamless', 'panera', 'dunkin',
     'wendy', 'chick-fil-a', 'popeyes', 'domino', 'panda express',
     'five guys', 'olive garden', 'applebee', 'ihop', 'waffle',
+    'sweetgreen', 'shake shack', 'wingstop',
   ],
   'Groceries': [
     'grocery', 'supermarket', 'whole foods', 'trader joe', 'walmart',
     'target', 'costco', 'kroger', 'safeway', 'publix', 'aldi',
     'wegmans', 'market', 'h-e-b', 'food lion', 'stop & shop',
     'sprouts', 'fresh market', 'giant', 'piggly wiggly',
+    'instacart', "sam's club",
   ],
   'Shopping': [
     'amazon', 'ebay', 'walmart.com', 'target.com', 'best buy', 'apple',
     'nike', 'adidas', 'zara', 'h&m', 'nordstrom', 'macy', 'gap',
     'old navy', 'ikea', 'home depot', 'lowe', 'wayfair', 'etsy',
-    'shopify', 'store', 'shop', 'mall', 'retail',
+    'shopify', 'store', 'shop', 'mall', 'retail', 'amazon prime',
   ],
   'Transportation': [
     'uber', 'lyft', 'taxi', 'gas', 'shell', 'chevron', 'exxon',
@@ -120,6 +122,12 @@ export function categorizeTransactionWithConfidence(transaction: ParsedTransacti
   // Use income type hint
   if (bestCategory === 'Other' && transaction.type === 'INCOME') {
     bestCategory = 'Income';
+    return { category: bestCategory, confidence: 65 };
+  }
+
+  // Use transfer type hint
+  if (bestCategory === 'Other' && transaction.type === 'TRANSFER') {
+    bestCategory = 'Transfer';
     return { category: bestCategory, confidence: 65 };
   }
 

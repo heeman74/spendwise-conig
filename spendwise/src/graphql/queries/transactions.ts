@@ -61,6 +61,20 @@ export const GET_CATEGORIES = gql`
   }
 `;
 
+export const GET_USER_CATEGORIES = gql`
+  query GetUserCategories {
+    userCategories {
+      id
+      name
+      type
+      isDefault
+      sortOrder
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const GET_TRANSACTIONS_NEEDING_REVIEW = gql`
   ${TRANSACTION_FRAGMENT}
   ${ACCOUNT_FRAGMENT}

@@ -54,6 +54,7 @@ export const transactionTypeDefs = gql`
     DATE
     AMOUNT
     CATEGORY
+    CREATED_AT
   }
 
   input CreateTransactionInput {
@@ -81,6 +82,27 @@ export const transactionTypeDefs = gql`
     totalCount: Int!
   }
 
+  type UserCategory {
+    id: ID!
+    name: String!
+    type: String!
+    isDefault: Boolean!
+    sortOrder: Int!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  input CreateUserCategoryInput {
+    name: String!
+    type: String
+  }
+
+  input UpdateUserCategoryInput {
+    name: String
+    type: String
+    sortOrder: Int
+  }
+
   extend type Query {
     transactions(
       pagination: PaginationInput
@@ -90,6 +112,7 @@ export const transactionTypeDefs = gql`
     transaction(id: ID!): Transaction
     recentTransactions(limit: Int = 5): [Transaction!]!
     categories: [String!]!
+    userCategories: [UserCategory!]!
     merchantRules(limit: Int, offset: Int): [MerchantRule!]!
     transactionsNeedingReview(limit: Int = 20, offset: Int = 0): TransactionsNeedingReviewResult!
   }
@@ -100,6 +123,9 @@ export const transactionTypeDefs = gql`
     deleteTransaction(id: ID!): Boolean!
     saveMerchantRule(merchant: String!, category: String!): MerchantRule!
     deleteMerchantRule(id: ID!): Boolean!
+    createUserCategory(input: CreateUserCategoryInput!): UserCategory!
+    updateUserCategory(id: ID!, input: UpdateUserCategoryInput!): UserCategory!
+    deleteUserCategory(id: ID!): Boolean!
   }
 
   type MerchantRule {

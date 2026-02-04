@@ -5,9 +5,10 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Spinner from '@/components/ui/Spinner';
 import { useAccounts } from '@/hooks/useAccounts';
-import { useCategories } from '@/hooks/useTransactions';
+import { useUserCategories, useCreateUserCategory } from '@/hooks/useTransactions';
+import { useRecurring } from '@/hooks/useRecurring';
 
-const DEFAULT_CATEGORIES = [
+const FALLBACK_CATEGORIES = [
   'Food & Dining', 'Groceries', 'Shopping', 'Transportation',
   'Bills & Utilities', 'Entertainment', 'Healthcare', 'Travel',
   'Education', 'Personal Care', 'Income', 'Transfer', 'Other',
@@ -33,7 +34,18 @@ interface ImportPreviewProps {
 
 export default function ImportPreview({ preview, onConfirm, onCancel, confirming }: ImportPreviewProps) {
   const { accounts } = useAccounts();
-  const { categories: userCategories } = useCategories();
+  const { categories: userCategoryList } = useUserCategories();
+  const { createUserCategory } = useCreateUserCategory();
+  const { recurring } = useRecurring();
+
+  // Build a set of known recurring merchant names (lowercased) for matching
+  const recurringMerchants = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of recurring) {
+      if (r.merchantName) set.add(r.merchantName.toLowerCase());
+    }
+    return set;
+  }, [recurring]);
   const [accountMode, setAccountMode] = useState<'existing' | 'new'>(
     preview.matchedAccountId ? 'existing' : 'new'
   );
@@ -54,18 +66,17 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
   const [categoryOverrides, setCategoryOverrides] = useState<Record<number, string>>({});
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [recurringFlags, setRecurringFlags] = useState<Record<number, boolean>>({});
-  const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [addingCategoryForIdx, setAddingCategoryForIdx] = useState<number | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const newCategoryInputRef = useRef<HTMLInputElement>(null);
 
-  // Merge default + user's existing + newly created categories, deduplicated
+  // Use API categories, fall back to hardcoded list while loading
   const allCategories = useMemo(() => {
-    const set = new Set<string>(DEFAULT_CATEGORIES);
-    for (const cat of userCategories) set.add(cat);
-    for (const cat of customCategories) set.add(cat);
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [userCategories, customCategories]);
+    const names = userCategoryList.length > 0
+      ? userCategoryList.map((c) => c.name)
+      : FALLBACK_CATEGORIES;
+    return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
+  }, [userCategoryList]);
 
   // Focus the input when the add-new row appears
   useEffect(() => {
@@ -92,11 +103,15 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
     setCategoryOverrides((prev) => ({ ...prev, [index]: category }));
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     const trimmed = newCategoryName.trim();
     if (!trimmed) return;
-    // Add to custom categories (will merge into allCategories via useMemo)
-    setCustomCategories((prev) => prev.includes(trimmed) ? prev : [...prev, trimmed]);
+    // Persist to DB so it's shared across files/sessions
+    try {
+      await createUserCategory({ name: trimmed });
+    } catch {
+      // May already exist (unique constraint) — that's fine
+    }
     // Set as the selected category for this transaction
     if (addingCategoryForIdx !== null) {
       setCategoryOverrides((prev) => ({ ...prev, [addingCategoryForIdx]: trimmed }));
@@ -108,6 +123,26 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
   const handleCancelAddCategory = () => {
     setAddingCategoryForIdx(null);
     setNewCategoryName('');
+  };
+
+  const handleRecurringToggle = (idx: number, checked: boolean) => {
+    const txn = preview.transactions[idx];
+    const merchant = (txn.cleanedMerchant || txn.merchant || '').toLowerCase();
+    if (!merchant) {
+      setRecurringFlags((prev) => ({ ...prev, [idx]: checked }));
+      return;
+    }
+    // Find all non-duplicate transactions with the same merchant and toggle them together
+    const updates: Record<number, boolean> = {};
+    for (let i = 0; i < preview.transactions.length; i++) {
+      const t = preview.transactions[i];
+      if (t.isDuplicate) continue;
+      const m = (t.cleanedMerchant || t.merchant || '').toLowerCase();
+      if (m === merchant) {
+        updates[i] = checked;
+      }
+    }
+    setRecurringFlags((prev) => ({ ...prev, ...updates }));
   };
 
   const handleConfirm = () => {
@@ -301,12 +336,18 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
                   <td className="px-4 py-2 text-gray-900 dark:text-white whitespace-nowrap">
                     {new Date(txn.date).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-2 max-w-[200px]">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <td className="px-4 py-2 max-w-[400px]">
+                    <div
+                      className="text-sm font-medium text-gray-900 dark:text-white truncate"
+                      title={txn.cleanedMerchant || txn.description}
+                    >
                       {txn.cleanedMerchant || txn.description}
                     </div>
                     {txn.cleanedMerchant && txn.description && txn.cleanedMerchant !== txn.description && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      <div
+                        className="text-xs text-gray-500 dark:text-gray-400 truncate"
+                        title={txn.description}
+                      >
                         {txn.description}
                       </div>
                     )}
@@ -392,15 +433,23 @@ export default function ImportPreview({ preview, onConfirm, onCancel, confirming
                   </td>
                   <td className="px-4 py-2 text-center">
                     {!txn.isDuplicate && (
-                      <input
-                        type="checkbox"
-                        checked={!!recurringFlags[idx]}
-                        onChange={(e) =>
-                          setRecurringFlags((prev) => ({ ...prev, [idx]: e.target.checked }))
-                        }
-                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                        title="Mark as recurring"
-                      />
+                      <div className="flex items-center justify-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={!!recurringFlags[idx]}
+                          onChange={(e) => handleRecurringToggle(idx, e.target.checked)}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                          title="Mark as recurring"
+                        />
+                        {recurringMerchants.has((txn.cleanedMerchant || txn.merchant || '').toLowerCase()) && (
+                          <span
+                            className="inline-flex items-center text-xs font-medium text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded-full"
+                            title="Matches an existing recurring transaction"
+                          >
+                            ↻
+                          </span>
+                        )}
+                      </div>
                     )}
                   </td>
                   <td className="px-4 py-2 text-center">

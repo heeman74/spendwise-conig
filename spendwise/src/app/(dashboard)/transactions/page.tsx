@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useCallback, useRef, useEffect, type SetStateAction } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
@@ -12,7 +13,8 @@ import Select from '@/components/ui/Select';
 import {
   useTransactions,
   useTransactionsNeedingReview,
-  useCategories,
+  useUserCategories,
+  useCreateUserCategory,
   useCreateTransaction,
   useUpdateTransaction,
   useDeleteTransaction,
@@ -20,6 +22,7 @@ import {
 import { useAccounts } from '@/hooks/useAccounts';
 import { useAddRecurring } from '@/hooks/useRecurring';
 import MarkAsRecurringModal from '@/components/transactions/MarkAsRecurringModal';
+import { formatCurrency } from '@/lib/utils';
 import type { Transaction, TransactionFilters as FiltersType } from '@/types';
 import type { SortState } from '@/components/transactions/TransactionList';
 
@@ -63,16 +66,43 @@ const PAGE_SIZE = 50;
 // Stable references — defined outside the component to prevent re-render loops
 const DEFAULT_PAGINATION = { page: 1, limit: PAGE_SIZE };
 
+const VALID_SORT_FIELDS = ['DATE', 'AMOUNT', 'CATEGORY', 'CREATED_AT'] as const;
+const VALID_SORT_ORDERS = ['ASC', 'DESC'] as const;
+
+function parseSortFromParams(params: URLSearchParams): SortState {
+  const field = params.get('sort')?.toUpperCase();
+  const order = params.get('order')?.toUpperCase();
+  return {
+    field: (VALID_SORT_FIELDS as readonly string[]).includes(field ?? '') ? (field as SortState['field']) : 'DATE',
+    order: (VALID_SORT_ORDERS as readonly string[]).includes(order ?? '') ? (order as SortState['order']) : 'DESC',
+  };
+}
+
 export default function TransactionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-gray-500 dark:text-gray-400">Loading transactions...</div>
+      </div>
+    }>
+      <TransactionsPageContent />
+    </Suspense>
+  );
+}
+
+function TransactionsPageContent() {
+  const searchParams = useSearchParams();
   const [filters, setFilters] = useState<FiltersType>(initialFilters);
-  const [sort, setSort] = useState<SortState>({ field: 'DATE', order: 'DESC' });
+  const [sort, setSort] = useState<SortState>(() => parseSortFromParams(searchParams));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'review'>('all');
   const [markRecurringTransaction, setMarkRecurringTransaction] = useState<Transaction | null>(null);
 
   const { accounts } = useAccounts();
-  const { categories: userCategories } = useCategories();
+  const { categories: userCategoryList } = useUserCategories();
+  const { createUserCategory } = useCreateUserCategory();
+  const userCategories = userCategoryList.map((c) => c.name);
 
   // Transform UI filters to API format
   const apiFilters = useMemo(() => {
@@ -150,10 +180,9 @@ export default function TransactionsPage() {
     }
   }, [isAddingCategory]);
 
-  // Merge predefined + user-defined categories, deduplicated and sorted, with "+ Add Category" at the end
+  // Merge user categories (from API) + any form-selected custom category, deduplicated and sorted
   const categoryOptions = useMemo(() => {
-    const all = new Set(PREDEFINED_CATEGORIES);
-    for (const c of userCategories) all.add(c);
+    const all = new Set(userCategories.length > 0 ? userCategories : PREDEFINED_CATEGORIES);
     if (formData.category && formData.category !== ADD_NEW_CATEGORY_VALUE) {
       all.add(formData.category);
     }
@@ -173,9 +202,15 @@ export default function TransactionsPage() {
     }
   };
 
-  const handleConfirmNewCategory = () => {
+  const handleConfirmNewCategory = async () => {
     const trimmed = newCategoryInput.trim();
     if (!trimmed) return;
+    // Persist to DB
+    try {
+      await createUserCategory({ name: trimmed });
+    } catch {
+      // May already exist — that's fine
+    }
     setFormData({ ...formData, category: trimmed });
     setIsAddingCategory(false);
     setNewCategoryInput('');
@@ -207,6 +242,25 @@ export default function TransactionsPage() {
   const handleClearFilters = () => {
     setFilters(initialFilters);
   };
+
+  const handleCategoryClick = useCallback((category: string) => {
+    setActiveTab('all');
+    setFilters((prev) => ({ ...prev, category }));
+  }, []);
+
+  // Category summary when a category filter is active
+  const categorySummary = useMemo(() => {
+    if (!filters.category || transactions.length === 0) return null;
+    let totalIncome = 0;
+    let totalExpense = 0;
+    let count = 0;
+    for (const t of transactions) {
+      count++;
+      if (t.type === 'INCOME') totalIncome += Math.abs(t.amount);
+      else if (t.type === 'EXPENSE') totalExpense += Math.abs(t.amount);
+    }
+    return { count, totalIncome, totalExpense, net: totalIncome - totalExpense };
+  }, [filters.category, transactions]);
 
   const handleEdit = (transaction: Transaction) => {
     setEditingTransaction(transaction);
@@ -361,6 +415,7 @@ export default function TransactionsPage() {
             onFiltersChange={handleFiltersChange}
             onClear={handleClearFilters}
             accounts={accountOptions}
+            categories={userCategories.length > 0 ? userCategories : PREDEFINED_CATEGORIES}
           />
         </Card>
       )}
@@ -394,15 +449,54 @@ export default function TransactionsPage() {
         </button>
       </div>
 
+      {/* Category summary banner */}
+      {categorySummary && filters.category && (
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{filters.category}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {categorySummary.count} transaction{categorySummary.count !== 1 ? 's' : ''} loaded
+                {pageInfo && pageInfo.totalCount > categorySummary.count && ` of ${pageInfo.totalCount} total`}
+              </p>
+            </div>
+            <div className="flex items-center gap-6 text-sm">
+              {categorySummary.totalIncome > 0 && (
+                <div className="text-right">
+                  <p className="text-gray-500 dark:text-gray-400">Income</p>
+                  <p className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(categorySummary.totalIncome)}</p>
+                </div>
+              )}
+              {categorySummary.totalExpense > 0 && (
+                <div className="text-right">
+                  <p className="text-gray-500 dark:text-gray-400">Spent</p>
+                  <p className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(categorySummary.totalExpense)}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* All Transactions list */}
       {activeTab === 'all' && (
         <Card padding="none">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {pageInfo
-              ? `Showing ${transactions.length} of ${pageInfo.totalCount} transactions`
-              : `Showing ${transactions.length} transactions`}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {pageInfo
+                ? `Showing ${transactions.length} of ${pageInfo.totalCount} transactions`
+                : `Showing ${transactions.length} transactions`}
+            </p>
+            {sort.field === 'CREATED_AT' && (
+              <button
+                onClick={() => setSort({ field: 'DATE', order: 'DESC' })}
+                className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+              >
+                Sorted by recently added — switch to date order
+              </button>
+            )}
+          </div>
         </div>
         <TransactionList
           transactions={transactions}
@@ -410,6 +504,7 @@ export default function TransactionsPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onMarkRecurring={handleMarkRecurring}
+          onCategoryClick={handleCategoryClick}
           sort={sort}
           onSort={setSort}
         />
@@ -452,6 +547,7 @@ export default function TransactionsPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onMarkRecurring={handleMarkRecurring}
+              onCategoryClick={handleCategoryClick}
               showConfidenceDetail
             />
           )}

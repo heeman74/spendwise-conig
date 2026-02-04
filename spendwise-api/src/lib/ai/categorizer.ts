@@ -5,20 +5,22 @@ import { redis } from '../redis';
 import { cleanMerchantName, generateMerchantFingerprint } from '../parsers/merchant-cleaner';
 import { categorizeTransactionWithConfidence } from '../parsers/categorizer';
 import type { ParsedTransaction } from '../parsers/types';
-import { VALID_CATEGORIES, VALID_CATEGORIES_TUPLE } from '../constants';
+import { VALID_CATEGORIES, getUserCategoryNames } from '../constants';
 
 const CACHE_TTL = 30 * 24 * 60 * 60; // 30 days in seconds
 const BATCH_SIZE = 50;
 
-// Zod schema for OpenAI Structured Outputs
-const CategorizedResult = z.object({
-  results: z.array(z.object({
-    index: z.number().describe('The transaction index from the input batch'),
-    category: z.enum(VALID_CATEGORIES_TUPLE).describe('The transaction category'),
-    confidence: z.number().min(0).max(100).describe('Confidence score 0-100'),
-    cleanedMerchant: z.string().describe('Clean, readable merchant name'),
-  })),
-});
+function buildCategorizedResultSchema(allCategories: string[]) {
+  const tuple = allCategories as [string, ...string[]];
+  return z.object({
+    results: z.array(z.object({
+      index: z.number().describe('The transaction index from the input batch'),
+      category: z.enum(tuple).describe('The transaction category'),
+      confidence: z.number().min(0).max(100).describe('Confidence score 0-100'),
+      cleanedMerchant: z.string().describe('Clean, readable merchant name'),
+    })),
+  });
+}
 
 export interface CategorizedTransaction extends ParsedTransaction {
   confidence: number;
@@ -63,6 +65,12 @@ export async function categorizeTransactionsAI(
 ): Promise<CategorizedTransaction[]> {
   const results: CategorizedTransaction[] = new Array(transactions.length);
   const uncategorizedIndices: number[] = [];
+
+  // Fetch user categories (includes defaults + custom)
+  const userCategoryNames = await getUserCategoryNames(prisma, userId);
+  // Build full category list: merge VALID_CATEGORIES with user custom categories
+  const allCategoryNames = Array.from(new Set([...VALID_CATEGORIES, ...userCategoryNames]));
+  const allCategorySet = new Set(allCategoryNames);
 
   // Step 1: Clean merchant names for all transactions
   const cleanedNames = transactions.map((txn) => {
@@ -132,7 +140,7 @@ export async function categorizeTransactionsAI(
         if (cached[j]) {
           try {
             const parsed = JSON.parse(cached[j]!);
-            if (parsed.category && VALID_CATEGORIES.includes(parsed.category)) {
+            if (parsed.category && allCategorySet.has(parsed.category)) {
               results[idx] = {
                 ...transactions[idx],
                 category: parsed.category,
@@ -161,6 +169,9 @@ export async function categorizeTransactionsAI(
     try {
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+      // Build dynamic Zod schema with all categories (defaults + custom)
+      const DynamicCategorizedResult = buildCategorizedResultSchema(allCategoryNames);
+
       // Fetch user category history once for all batches
       const userHistoryContext = await getUserCategoryHistory(prisma, userId);
 
@@ -179,7 +190,7 @@ export async function categorizeTransactionsAI(
           messages: [
             {
               role: 'system',
-              content: `You are a financial transaction categorizer. Categorize each transaction into exactly one of these categories: ${VALID_CATEGORIES.join(', ')}.
+              content: `You are a financial transaction categorizer. Categorize each transaction into exactly one of these categories: ${allCategoryNames.join(', ')}.
 
 Rules:
 - Use the merchant name as primary signal
@@ -192,7 +203,7 @@ Rules:
               content: `Categorize these transactions (format: index|merchant|description|amount|type):\n${batchItems.join('\n')}`,
             },
           ],
-          response_format: zodResponseFormat(CategorizedResult, 'categorization'),
+          response_format: zodResponseFormat(DynamicCategorizedResult, 'categorization'),
         });
 
         const message = response.choices[0]?.message;
@@ -241,6 +252,8 @@ Rules:
     } catch (error) {
       console.error('OpenAI categorization failed:', error);
     }
+  } else if (uncategorizedIndices.length > 0 && !process.env.OPENAI_API_KEY) {
+    console.warn('OPENAI_API_KEY not set — skipping AI categorization, using keyword fallback');
   }
 
   // Step 5: Keyword fallback for anything still uncategorized

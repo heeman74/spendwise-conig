@@ -92,6 +92,7 @@ export const netWorthResolvers = {
         }),
         context.prisma.account.findMany({
           where: allAccountWhereClause,
+          orderBy: { id: 'asc' },
         }),
       ]);
 

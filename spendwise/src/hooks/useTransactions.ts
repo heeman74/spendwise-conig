@@ -2,14 +2,19 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from '@apollo/client/react';
+import { NetworkStatus } from '@apollo/client';
 import {
   GET_TRANSACTIONS,
   GET_RECENT_TRANSACTIONS,
   GET_CATEGORIES,
+  GET_USER_CATEGORIES,
   GET_TRANSACTIONS_NEEDING_REVIEW,
   CREATE_TRANSACTION,
   UPDATE_TRANSACTION,
   DELETE_TRANSACTION,
+  CREATE_USER_CATEGORY,
+  UPDATE_USER_CATEGORY,
+  DELETE_USER_CATEGORY,
 } from '@/graphql';
 
 export interface TransactionFilterInput {
@@ -24,7 +29,7 @@ export interface TransactionFilterInput {
 }
 
 export interface TransactionSortInput {
-  field?: 'DATE' | 'AMOUNT' | 'CATEGORY';
+  field?: 'DATE' | 'AMOUNT' | 'CATEGORY' | 'CREATED_AT';
   order?: 'ASC' | 'DESC';
 }
 
@@ -61,7 +66,7 @@ export function useTransactions(
   const [loadingMore, setLoadingMore] = useState(false);
   const nextPageRef = useRef(2);
 
-  const { data, loading, error, fetchMore, refetch: baseRefetch } = useQuery<any>(GET_TRANSACTIONS, {
+  const { data, loading, error, fetchMore, refetch: baseRefetch, networkStatus } = useQuery<any>(GET_TRANSACTIONS, {
     variables: { filters, pagination, sort },
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,
@@ -75,8 +80,12 @@ export function useTransactions(
 
   const pageInfo = data?.transactions?.pageInfo;
 
+  // Only treat as "actively fetching" on initial load (status 1) or explicit refetch (status 4),
+  // NOT on background cache-and-network re-fetches (status 2/7) which should not block loadMore.
+  const isInitialOrRefetch = networkStatus === NetworkStatus.loading || networkStatus === NetworkStatus.refetch;
+
   const loadMore = useCallback(async () => {
-    if (!pageInfo?.hasNextPage || loadingMore || loading) return;
+    if (!pageInfo?.hasNextPage || loadingMore || isInitialOrRefetch) return;
     setLoadingMore(true);
     try {
       await fetchMore({
@@ -91,7 +100,7 @@ export function useTransactions(
     } finally {
       setLoadingMore(false);
     }
-  }, [fetchMore, pageInfo?.hasNextPage, loadingMore, loading, pagination?.limit]);
+  }, [fetchMore, pageInfo?.hasNextPage, loadingMore, isInitialOrRefetch, pagination?.limit]);
 
   const refetch = useCallback(async () => {
     nextPageRef.current = 2;
@@ -101,7 +110,7 @@ export function useTransactions(
   return {
     transactions: data?.transactions?.edges?.map((e: { node: unknown }) => e.node) ?? [],
     pageInfo,
-    loading: loading && !loadingMore,
+    loading: isInitialOrRefetch && !data,
     loadingMore,
     error,
     loadMore,
@@ -144,7 +153,7 @@ export function useTransactionsNeedingReview(limit = 20) {
   return {
     transactions: data?.transactionsNeedingReview?.transactions ?? [],
     totalCount: data?.transactionsNeedingReview?.totalCount ?? 0,
-    loading,
+    loading: loading && !data,
     error,
     refetch,
   };
@@ -175,8 +184,10 @@ export function useUpdateTransaction() {
   const client = useApolloClient();
   const [updateTransactionMutation, { loading, error }] = useMutation<any>(UPDATE_TRANSACTION, {
     onCompleted: () => {
+      // Don't refetch GetTransactions — Apollo auto-updates the cached
+      // Transaction by id, so the list stays intact with scroll position preserved.
       client.refetchQueries({
-        include: ['GetTransactions', 'GetDashboardStats', 'GetAccounts', 'GetAnalytics'],
+        include: ['GetDashboardStats', 'GetAccounts', 'GetAnalytics'],
       });
     },
   });
@@ -196,16 +207,105 @@ export function useDeleteTransaction() {
   const [deleteTransactionMutation, { loading, error }] = useMutation<any>(DELETE_TRANSACTION, {
     onCompleted: () => {
       client.refetchQueries({
-        include: ['GetTransactions', 'GetDashboardStats', 'GetAccounts', 'GetAnalytics'],
+        include: ['GetDashboardStats', 'GetAccounts', 'GetAnalytics'],
       });
     },
   });
 
   const deleteTransaction = (id: string) =>
-    deleteTransactionMutation({ variables: { id } });
+    deleteTransactionMutation({
+      variables: { id },
+      update: (cache) => {
+        cache.evict({ id: cache.identify({ __typename: 'Transaction', id }) });
+        cache.gc();
+      },
+    });
 
   return {
     deleteTransaction,
+    loading,
+    error,
+  };
+}
+
+export interface UserCategory {
+  id: string;
+  name: string;
+  type: string;
+  isDefault: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function useUserCategories() {
+  const { data, loading, error, refetch } = useQuery<any>(GET_USER_CATEGORIES, {
+    fetchPolicy: 'cache-and-network',
+  });
+
+  return {
+    categories: (data?.userCategories ?? []) as UserCategory[],
+    loading,
+    error,
+    refetch,
+  };
+}
+
+export function useCreateUserCategory() {
+  const client = useApolloClient();
+  const [createUserCategoryMutation, { loading, error }] = useMutation<any>(CREATE_USER_CATEGORY, {
+    onCompleted: () => {
+      client.refetchQueries({
+        include: ['GetUserCategories', 'GetCategories'],
+      });
+    },
+  });
+
+  const createUserCategory = (input: { name: string; type?: string }) =>
+    createUserCategoryMutation({ variables: { input } });
+
+  return {
+    createUserCategory,
+    loading,
+    error,
+  };
+}
+
+export function useUpdateUserCategory() {
+  const client = useApolloClient();
+  const [updateUserCategoryMutation, { loading, error }] = useMutation<any>(UPDATE_USER_CATEGORY, {
+    onCompleted: () => {
+      client.refetchQueries({
+        include: ['GetUserCategories', 'GetCategories', 'GetTransactions'],
+      });
+    },
+  });
+
+  const updateUserCategory = (id: string, input: { name?: string; type?: string; sortOrder?: number }) =>
+    updateUserCategoryMutation({ variables: { id, input } });
+
+  return {
+    updateUserCategory,
+    loading,
+    error,
+  };
+}
+
+export function useDeleteUserCategory() {
+  const client = useApolloClient();
+  const [deleteUserCategoryMutation, { loading, error }] = useMutation<any>(DELETE_USER_CATEGORY, {
+    onCompleted: () => {
+      client.refetchQueries({
+        include: ['GetUserCategories', 'GetCategories'],
+      });
+    },
+  });
+
+  const deleteUserCategory = (id: string) =>
+    deleteUserCategoryMutation({ variables: { id } });
+
+  return {
+    deleteUserCategory,
     loading,
     error,
   };

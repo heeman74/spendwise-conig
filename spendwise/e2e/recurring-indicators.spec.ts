@@ -1,75 +1,101 @@
 import { test, expect } from '@playwright/test';
+import {
+  seedRecurringTestData,
+  disconnectPrisma,
+  type TestUser,
+} from './helpers/recurring-test-data';
+import { signInWithNextAuth } from './helpers/sign-in';
+
+// Force all tests in this file to run sequentially in a single worker
+// to avoid race conditions with shared test data
+test.describe.configure({ mode: 'serial' });
+
+// ---------------------------------------------------------------------------
+// Test lifecycle: seed real data before all tests
+// Cleanup is handled by global teardown (e2e/global-teardown.ts)
+// ---------------------------------------------------------------------------
+
+let testUser: TestUser;
+
+test.beforeAll(async () => {
+  testUser = await seedRecurringTestData();
+});
+
+test.afterAll(async () => {
+  await disconnectPrisma();
+});
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 test.describe('Recurring Indicators', () => {
-  // Login via demo mode before each test
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
-    await page.getByRole('button', { name: /demo|try demo/i }).click();
-    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+    await signInWithNextAuth(page, testUser.email, testUser.password);
   });
 
   test.describe('Transactions Page - Recurring Badges', () => {
     test.beforeEach(async ({ page }) => {
       await page.getByRole('link', { name: /transactions/i }).first().click();
       await page.waitForURL(/\/transactions/, { timeout: 10000 });
+      // Wait for transactions to load from the API
+      await expect(page.getByText('$15.99')).toBeVisible({ timeout: 15000 });
     });
 
     test('should display transactions page', async ({ page }) => {
       await expect(page.getByRole('heading', { name: /transactions/i })).toBeVisible();
     });
 
-    test('should display transaction amounts or empty state', async ({ page }) => {
-      await page.waitForLoadState('networkidle');
-      const amounts = page.locator('text=/\\$[\\d,]+\\.\\d{2}/');
-      const emptyState = page.getByText(/no transactions/i);
-
-      // Either transactions with amounts are shown, or the empty state is displayed
-      const hasAmounts = await amounts.first().isVisible().catch(() => false);
-      const hasEmptyState = await emptyState.isVisible().catch(() => false);
-      expect(hasAmounts || hasEmptyState).toBe(true);
+    test('should display transaction amounts', async ({ page }) => {
+      await expect(page.getByText('$15.99')).toBeVisible();
+      await expect(page.getByText('$85.50')).toBeVisible();
+      await expect(page.getByText('$49.99')).toBeVisible();
+      await expect(page.getByText('$32.47')).toBeVisible();
+      await expect(page.getByText('$45.00')).toBeVisible();
     });
 
-    test('should show recurring badges on recurring transactions if any exist', async ({ page }) => {
-      await page.waitForLoadState('domcontentloaded');
+    test('should show recurring badges on recurring transactions', async ({ page }) => {
+      const recurringBadges = page.locator('text=/^(Monthly|Weekly|Biweekly)$/');
 
-      // Look for recurring badges (they contain frequency text like Monthly, Weekly, etc.)
-      const recurringBadges = page.locator('text=/^(Monthly|Weekly|Biweekly|Quarterly|Annual)$/');
-
-      // Count how many recurring badges appear
-      const count = await recurringBadges.count().catch(() => 0);
-
-      // If recurring transactions exist, badges should be visible
-      if (count > 0) {
-        await expect(recurringBadges.first()).toBeVisible();
-      }
-      // If no recurring transactions exist, that's also valid (no badges shown)
+      // Exactly 3 recurring badges should be visible
+      await expect(recurringBadges).toHaveCount(3);
+      await expect(page.getByText('Monthly', { exact: true })).toBeVisible();
+      await expect(page.getByText('Weekly', { exact: true })).toBeVisible();
+      await expect(page.getByText('Biweekly', { exact: true })).toBeVisible();
     });
 
     test('should display recurring badge with purple styling', async ({ page }) => {
-      await page.waitForLoadState('domcontentloaded');
-
-      // Check for purple-styled badges (the recurring indicator class)
-      const purpleBadge = page.locator('.bg-purple-100, .dark\\:bg-purple-900\\/30');
-      const hasPurpleBadges = await purpleBadge.count().catch(() => 0);
-
-      if (hasPurpleBadges > 0) {
-        await expect(purpleBadge.first()).toBeVisible();
-      }
+      const purpleBadges = page.locator('.bg-purple-100');
+      await expect(purpleBadges).toHaveCount(3);
+      await expect(purpleBadges.first()).toBeVisible();
     });
 
     test('should show recurring badge inline with merchant name', async ({ page }) => {
-      await page.waitForLoadState('domcontentloaded');
+      // "Monthly" badge should be in the same row as "Netflix"
+      const netflixRow = page.locator('tr').filter({ hasText: 'Netflix' });
+      await expect(netflixRow.getByText('Monthly', { exact: true })).toBeVisible();
+      await expect(netflixRow.locator('text=/\\$15\\.99/')).toBeVisible();
 
-      const recurringBadge = page.locator('text=/^(Monthly|Weekly|Biweekly|Quarterly|Annual)$/').first();
+      // "Weekly" badge should be in the same row as "Whole Foods"
+      const wholeFoodsRow = page.locator('tr').filter({ hasText: 'Whole Foods' });
+      await expect(wholeFoodsRow.getByText('Weekly', { exact: true })).toBeVisible();
+      await expect(wholeFoodsRow.locator('text=/\\$85\\.50/')).toBeVisible();
+    });
 
-      if (await recurringBadge.isVisible().catch(() => false)) {
-        // Badge should be adjacent to a merchant name in the same row
-        const row = recurringBadge.locator('xpath=ancestor::tr');
-        await expect(row).toBeVisible();
+    test('should not show recurring badge on non-recurring transactions', async ({ page }) => {
+      // Target row should have no frequency badge
+      const targetRow = page.locator('tr').filter({ hasText: 'Target' });
+      await expect(targetRow).toBeVisible();
+      await expect(
+        targetRow.locator('text=/^(Monthly|Weekly|Biweekly|Quarterly|Annual)$/')
+      ).toHaveCount(0);
 
-        // The row should also contain a dollar amount
-        await expect(row.locator('text=/\\$/')).toBeVisible();
-      }
+      // Shell Gas row should have no frequency badge
+      const shellRow = page.locator('tr').filter({ hasText: 'Shell Gas' });
+      await expect(shellRow).toBeVisible();
+      await expect(
+        shellRow.locator('text=/^(Monthly|Weekly|Biweekly|Quarterly|Annual)$/')
+      ).toHaveCount(0);
     });
   });
 

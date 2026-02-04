@@ -34,6 +34,7 @@ model User {
   netWorthSnapshots     NetWorthSnapshot[]
   chatSessions          ChatSession[]
   insightCaches         InsightCache[]
+  userCategories        UserCategory[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -371,4 +372,19 @@ model InsightCache {
 
   @@unique([userId, insightType, generatedAt])
   @@index([userId, invalidatedAt])
+}
+
+model UserCategory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      String   @default("EXPENSE") // INCOME, EXPENSE, BOTH
+  isDefault Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
 }

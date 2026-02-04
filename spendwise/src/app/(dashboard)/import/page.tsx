@@ -5,33 +5,34 @@ import { useSession } from 'next-auth/react';
 import Card from '@/components/ui/Card';
 import ImportStepper from '@/components/import/ImportStepper';
 import FileDropzone from '@/components/import/FileDropzone';
-import ParsingProgress from '@/components/import/ParsingProgress';
-import ImportPreview from '@/components/import/ImportPreview';
-import ImportResult from '@/components/import/ImportResult';
+import MultiParsingProgress from '@/components/import/MultiParsingProgress';
+import MultiImportPreview from '@/components/import/MultiImportPreview';
+import MultiImportResult from '@/components/import/MultiImportResult';
 import ImportHistory from '@/components/import/ImportHistory';
-import {
-  useStatementUpload,
-  useImportPreview,
-  useConfirmImport,
-  useCancelImport,
-} from '@/hooks/useStatementImport';
+import { useMultiStatementImport } from '@/hooks/useMultiStatementImport';
 
-type Step = 'upload' | 'parse' | 'preview' | 'import' | 'done';
+type Step = 'upload' | 'parse' | 'preview' | 'done';
 
 export default function ImportPage() {
   const { data: session } = useSession();
   const [step, setStep] = useState<Step>('upload');
-  const [fileName, setFileName] = useState('');
-  const [importResult, setImportResult] = useState<any>(null);
 
-  const { uploading, importId, error: uploadError, upload, reset: resetUpload } = useStatementUpload();
-  const { preview, isParsing, isReady, isError, startFetching, stopPolling } = useImportPreview(importId);
-  const { confirm, loading: confirming, error: confirmError } = useConfirmImport();
-  const { cancel } = useCancelImport();
+  const {
+    entries,
+    uploadAll,
+    startPolling,
+    cancelAll,
+    resetAll,
+    confirmEntry,
+    skipEntry,
+    allParsed,
+    allDone,
+    hasAnyPreviewReady,
+    allFailed,
+  } = useMultiStatementImport();
 
-  // Handle file selected from dropzone
-  const handleFileSelected = useCallback(async (file: File) => {
-    setFileName(file.name);
+  // Handle files selected from dropzone
+  const handleFilesSelected = useCallback(async (files: File[]) => {
     setStep('parse');
 
     try {
@@ -39,64 +40,46 @@ export default function ImportPage() {
       if (!token) {
         throw new Error('Not authenticated');
       }
-      const id = await upload(file, token);
-      if (id) {
-        startFetching(id);
-      }
+      await uploadAll(files, token);
+      startPolling();
     } catch {
       setStep('upload');
     }
-  }, [session, upload, startFetching]);
+  }, [session, uploadAll, startPolling]);
 
-  // React to preview status changes
+  // Auto-transition from parse to preview when all parsing is done and at least one is ready
   useEffect(() => {
-    if (isReady && preview) {
-      stopPolling();
+    if (step === 'parse' && allParsed && hasAnyPreviewReady) {
       setStep('preview');
     }
-    if (isError) {
-      stopPolling();
-      // Stay on parse step to show error
-    }
-  }, [isReady, isError, preview, stopPolling]);
+  }, [step, allParsed, hasAnyPreviewReady]);
 
-  // Handle confirm import
-  const handleConfirm = useCallback(async (options: any) => {
-    if (!importId) return;
-
-    try {
-      const result = await confirm({
-        importId,
-        ...options,
-      });
-      if (result?.success) {
-        setImportResult(result);
-        setStep('done');
-      }
-    } catch {
-      // Error shown via confirmError
+  // Auto-transition to done when all entries are resolved
+  useEffect(() => {
+    if (step === 'preview' && allDone) {
+      setStep('done');
     }
-  }, [importId, confirm]);
+  }, [step, allDone]);
+
+  // Handle continue from parsing progress
+  const handleContinueToReview = useCallback(() => {
+    setStep('preview');
+  }, []);
 
   // Handle cancel
   const handleCancel = useCallback(async () => {
-    if (importId) {
-      try {
-        await cancel(importId);
-      } catch {
-        // Best-effort cancel
-      }
-    }
-    resetState();
-  }, [importId, cancel]);
+    await cancelAll();
+    setStep('upload');
+  }, [cancelAll]);
 
   // Reset to start
   const resetState = useCallback(() => {
+    resetAll();
     setStep('upload');
-    setFileName('');
-    setImportResult(null);
-    resetUpload();
-  }, [resetUpload]);
+  }, [resetAll]);
+
+  // Map step to stepper format (stepper expects 5 steps, we use 4)
+  const stepperStep = step === 'done' ? 'done' : step === 'preview' ? 'preview' : step === 'parse' ? 'parse' : 'upload';
 
   return (
     <div className="space-y-6">
@@ -109,69 +92,39 @@ export default function ImportPage() {
 
       <Card>
         <div className="p-6">
-          <ImportStepper currentStep={step} />
+          <ImportStepper currentStep={stepperStep} />
 
           {/* Upload Step */}
           {step === 'upload' && (
-            <div>
-              {uploadError && (
-                <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-                  {uploadError}
-                </div>
-              )}
-              <FileDropzone onFileSelected={handleFileSelected} disabled={uploading} />
-            </div>
+            <FileDropzone onFilesSelected={handleFilesSelected} />
           )}
 
           {/* Parsing Step */}
           {step === 'parse' && (
-            <div>
-              {isError && preview?.warnings ? (
-                <div className="text-center py-8">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                    Failed to parse statement
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    {preview.warnings[0] || 'An error occurred while parsing your statement.'}
-                  </p>
-                  <button
-                    onClick={resetState}
-                    className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    Try another file
-                  </button>
-                </div>
-              ) : (
-                <ParsingProgress fileName={fileName} />
-              )}
-            </div>
+            <MultiParsingProgress
+              entries={entries}
+              onContinue={handleContinueToReview}
+              onRetry={resetState}
+              onCancel={handleCancel}
+              hasAnyPreviewReady={hasAnyPreviewReady}
+              allParsed={allParsed}
+              allFailed={allFailed}
+            />
           )}
 
           {/* Preview Step */}
-          {step === 'preview' && preview && (
-            <div>
-              {confirmError && (
-                <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-                  {confirmError}
-                </div>
-              )}
-              <ImportPreview
-                preview={preview}
-                onConfirm={handleConfirm}
-                onCancel={handleCancel}
-                confirming={confirming}
-              />
-            </div>
+          {step === 'preview' && (
+            <MultiImportPreview
+              entries={entries}
+              onConfirmEntry={confirmEntry}
+              onSkipEntry={skipEntry}
+              onCancelAll={handleCancel}
+            />
           )}
 
           {/* Done Step */}
-          {step === 'done' && importResult && (
-            <ImportResult result={importResult} onImportAnother={resetState} />
+          {step === 'done' && (
+            <MultiImportResult entries={entries} onImportMore={resetState} />
           )}
         </div>
       </Card>
