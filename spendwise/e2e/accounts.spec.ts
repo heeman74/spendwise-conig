@@ -45,7 +45,7 @@ test.describe('Accounts', () => {
     });
 
     test('should display total balance summary', async ({ page }) => {
-      await expect(page.getByText('Net Worth')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByRole('main').getByText('Net Worth')).toBeVisible({ timeout: 5000 });
     });
   });
 

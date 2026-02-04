@@ -11,10 +11,13 @@ import QuickActions from '@/components/dashboard/QuickActions';
 import TrendLineChart from '@/components/charts/TrendLineChart';
 import NetWorthSummaryCard from '@/components/dashboard/NetWorthSummaryCard';
 import PortfolioSummaryCard from '@/components/dashboard/PortfolioSummaryCard';
+import SavingsGoalsWidget from '@/components/dashboard/SavingsGoalsWidget';
+import RecurringSummaryWidget from '@/components/dashboard/RecurringSummaryWidget';
+import InsightsWidget from '@/components/dashboard/InsightsWidget';
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import { useDashboardStats } from '@/hooks/useDashboard';
-import { getDashboardStats, getTrendData, mockTransactions } from '@/data/mockData';
+import { getDashboardStats, getTrendData, mockTransactions, mockSavingsGoals } from '@/data/mockData';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -31,6 +34,10 @@ export default function DashboardPage() {
     return {
       ...stats,
       recentTransactions: mockTransactions.slice(0, 5),
+      savingsGoals: mockSavingsGoals.map((g) => ({
+        ...g,
+        deadline: g.deadline ? new Date(g.deadline) : null,
+      })),
     };
   }, [isDemo]);
 
@@ -183,11 +190,20 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Net Worth Summary */}
-      <NetWorthSummaryCard />
+      {/* Net Worth + Portfolio */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <NetWorthSummaryCard />
+        <PortfolioSummaryCard />
+      </div>
 
-      {/* Portfolio Summary */}
-      <PortfolioSummaryCard />
+      {/* Savings Goals + Recurring Bills */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SavingsGoalsWidget goals={dashboardStats.savingsGoals || []} />
+        <RecurringSummaryWidget />
+      </div>
+
+      {/* AI Insights */}
+      <InsightsWidget />
 
       {/* Charts and transactions grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

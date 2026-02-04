@@ -27,6 +27,7 @@ export const ACCOUNT_FRAGMENT = gql`
     type
     balance
     institution
+    mask
     lastSynced
     createdAt
     updatedAt

@@ -16,9 +16,10 @@ import type { TrendData } from '@/types';
 interface TrendLineChartProps {
   data: TrendData;
   showSavings?: boolean;
+  onMonthClick?: (monthLabel: string) => void;
 }
 
-export default function TrendLineChart({ data, showSavings = true }: TrendLineChartProps) {
+export default function TrendLineChart({ data, showSavings = true, onMonthClick }: TrendLineChartProps) {
   if (!data || data.labels.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
@@ -44,15 +45,29 @@ export default function TrendLineChart({ data, showSavings = true }: TrendLineCh
               {entry.name}: {formatCurrency(entry.value)}
             </p>
           ))}
+          {onMonthClick && (
+            <p className="text-xs text-primary-500 mt-1">Click to view this month</p>
+          )}
         </div>
       );
     }
     return null;
   };
 
+  const handleChartClick = (state: any) => {
+    if (onMonthClick && state?.activeLabel) {
+      onMonthClick(state.activeLabel);
+    }
+  };
+
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+      <LineChart
+        data={chartData}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        onClick={handleChartClick}
+        style={onMonthClick ? { cursor: 'pointer' } : undefined}
+      >
         <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
         <XAxis
           dataKey="name"

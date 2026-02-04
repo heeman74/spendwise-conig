@@ -64,6 +64,19 @@ export async function parseOFX(buffer: Buffer): Promise<ParsedStatement> {
     }
   }
 
+  // Build a descriptive account name from institution + type + mask
+  const typeLabel: Record<string, string> = {
+    CHECKING: 'Checking',
+    SAVINGS: 'Savings',
+    CREDIT: 'Credit Card',
+    INVESTMENT: 'Investment',
+  };
+  const nameParts: string[] = [];
+  if (account.institution) nameParts.push(account.institution);
+  if (account.accountType) nameParts.push(typeLabel[account.accountType] || account.accountType);
+  if (account.accountMask) nameParts.push(`···${account.accountMask}`);
+  if (nameParts.length > 0) account.accountName = nameParts.join(' ');
+
   // Extract transactions
   const tranList = stmtResponse.BANKTRANLIST || stmtResponse.INVTRANLIST;
   if (!tranList) {

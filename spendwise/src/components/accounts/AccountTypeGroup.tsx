@@ -8,6 +8,8 @@ import type { Account, AccountType } from '@/types';
 interface AccountTypeGroupProps {
   type: AccountType;
   accounts: Account[];
+  onEdit?: (account: Account) => void;
+  onDelete?: (id: string) => void;
 }
 
 const typeLabels: Record<AccountType, string> = {
@@ -20,6 +22,8 @@ const typeLabels: Record<AccountType, string> = {
 export default function AccountTypeGroup({
   type,
   accounts,
+  onEdit,
+  onDelete,
 }: AccountTypeGroupProps) {
   const typeLabel = typeLabels[type];
 
@@ -57,6 +61,8 @@ export default function AccountTypeGroup({
             <AccountCard
               key={account.id}
               account={account}
+              onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))}
         </div>

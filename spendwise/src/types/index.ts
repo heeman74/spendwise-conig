@@ -19,6 +19,7 @@ export interface Account {
   type: AccountType;
   balance: number;
   institution: string;
+  mask: string | null;
   lastSynced: Date | null;
   createdAt: Date;
   updatedAt: Date;

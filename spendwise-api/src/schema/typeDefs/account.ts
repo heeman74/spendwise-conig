@@ -8,6 +8,7 @@ export const accountTypeDefs = gql`
     type: AccountType!
     balance: Decimal!
     institution: String!
+    mask: String
     includeInNetWorth: Boolean!
     lastSynced: DateTime
     transactions(pagination: PaginationInput): TransactionConnection!

@@ -102,9 +102,16 @@ export default function TransactionItem({ transaction, onEdit, onDelete, onMarkR
         </div>
       </TableCell>
       <TableCell>
-        <span className="text-sm text-gray-600 dark:text-gray-400">
-          {transaction.account?.name || 'Unknown'}
-        </span>
+        <div>
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            {transaction.account?.name || 'Unknown'}
+          </span>
+          {transaction.account?.mask && (
+            <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">
+              ···{transaction.account.mask}
+            </span>
+          )}
+        </div>
       </TableCell>
       <TableCell className="text-right">
         <span

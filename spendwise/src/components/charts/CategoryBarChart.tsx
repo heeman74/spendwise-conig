@@ -16,9 +16,10 @@ import type { CategoryAmount } from '@/types';
 interface CategoryBarChartProps {
   data: CategoryAmount[];
   horizontal?: boolean;
+  onCategoryClick?: (category: string) => void;
 }
 
-export default function CategoryBarChart({ data, horizontal = false }: CategoryBarChartProps) {
+export default function CategoryBarChart({ data, horizontal = false, onCategoryClick }: CategoryBarChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
@@ -68,7 +69,15 @@ export default function CategoryBarChart({ data, horizontal = false }: CategoryB
             width={90}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
+          <Bar
+            dataKey="amount"
+            radius={[0, 4, 4, 0]}
+            onClick={onCategoryClick ? (entry: any) => {
+              const cat = entry.category ?? entry.payload?.category;
+              if (cat) onCategoryClick(cat);
+            } : undefined}
+            style={onCategoryClick ? { cursor: 'pointer' } : undefined}
+          >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
@@ -94,7 +103,15 @@ export default function CategoryBarChart({ data, horizontal = false }: CategoryB
           tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+        <Bar
+          dataKey="amount"
+          radius={[4, 4, 0, 0]}
+          onClick={onCategoryClick ? (entry: any) => {
+              const cat = entry.category ?? entry.payload?.category;
+              if (cat) onCategoryClick(cat);
+            } : undefined}
+          style={onCategoryClick ? { cursor: 'pointer' } : undefined}
+        >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />
           ))}

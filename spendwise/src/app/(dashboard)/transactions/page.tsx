@@ -69,7 +69,7 @@ const DEFAULT_PAGINATION = { page: 1, limit: PAGE_SIZE };
 const VALID_SORT_FIELDS = ['DATE', 'AMOUNT', 'CATEGORY', 'CREATED_AT'] as const;
 const VALID_SORT_ORDERS = ['ASC', 'DESC'] as const;
 
-function parseSortFromParams(params: URLSearchParams): SortState {
+function parseSortFromParams(params: { get(name: string): string | null }): SortState {
   const field = params.get('sort')?.toUpperCase();
   const order = params.get('order')?.toUpperCase();
   return {

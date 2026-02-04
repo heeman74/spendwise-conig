@@ -7,9 +7,10 @@ import type { CategoryAmount } from '@/types';
 interface SpendingPieChartProps {
   data: CategoryAmount[];
   showLegend?: boolean;
+  onCategoryClick?: (category: string) => void;
 }
 
-export default function SpendingPieChart({ data, showLegend = true }: SpendingPieChartProps) {
+export default function SpendingPieChart({ data, showLegend = true, onCategoryClick }: SpendingPieChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
@@ -45,6 +46,11 @@ export default function SpendingPieChart({ data, showLegend = true }: SpendingPi
           paddingAngle={2}
           dataKey="amount"
           nameKey="category"
+          onClick={onCategoryClick ? (entry: any) => {
+            const cat = entry.category ?? entry.name ?? entry.payload?.category;
+            if (cat) onCategoryClick(cat);
+          } : undefined}
+          style={onCategoryClick ? { cursor: 'pointer' } : undefined}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />

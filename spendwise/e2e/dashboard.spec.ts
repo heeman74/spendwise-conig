@@ -36,9 +36,11 @@ test.describe('Dashboard', () => {
         await expect(bottomNav.getByRole('link', { name: /transactions/i })).toBeVisible();
         await expect(bottomNav.getByRole('link', { name: /accounts/i })).toBeVisible();
       } else {
-        await expect(page.getByRole('link', { name: /dashboard/i })).toBeVisible();
-        await expect(page.getByRole('link', { name: /transactions/i })).toBeVisible();
-        await expect(page.getByRole('link', { name: /accounts/i })).toBeVisible();
+        // Use exact matches to avoid collisions with dashboard widget links
+        // that contain similar text (e.g., "No recurring transactions", "No accounts")
+        await expect(page.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Transactions', exact: true })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Accounts', exact: true })).toBeVisible();
       }
     });
 
@@ -152,6 +154,103 @@ test.describe('Dashboard', () => {
       const nav = page.getByRole('navigation').last();
       await nav.getByRole('link', { name: /accounts/i }).click();
       await expect(page).toHaveURL(/\/accounts/);
+    });
+  });
+
+  test.describe('Savings Goals Widget', () => {
+    test('should display savings goals section', async ({ page }) => {
+      await expect(page.getByText(/savings goals/i).first()).toBeVisible();
+    });
+
+    test('should display mock savings goal names in demo mode', async ({ page }) => {
+      // Demo mode provides mock savings goals
+      const goalNames = ['Emergency Fund', 'Vacation Fund', 'New Car'];
+      let foundGoal = false;
+
+      for (const name of goalNames) {
+        const el = page.getByText(name);
+        if (await el.isVisible().catch(() => false)) {
+          foundGoal = true;
+          break;
+        }
+      }
+
+      expect(foundGoal).toBe(true);
+    });
+
+    test('should display progress bars for goals', async ({ page }) => {
+      // Progress bars are rendered as div elements with width styles
+      // Look for the progress bar container class
+      const progressBars = page.locator('.bg-primary-600, .dark\\:bg-primary-500');
+      const count = await progressBars.count();
+      expect(count).toBeGreaterThanOrEqual(1);
+    });
+
+    test('should have link to savings page', async ({ page }) => {
+      const link = page.getByRole('link', { name: /view all/i });
+      // Could be in any widget; check at least one view all link exists
+      await expect(link.first()).toBeVisible();
+    });
+  });
+
+  test.describe('Recurring Bills Widget', () => {
+    test('should display recurring bills section', async ({ page }) => {
+      await expect(page.getByText(/recurring bills/i).first()).toBeVisible();
+    });
+
+    test('should show empty or data state for recurring', async ({ page }) => {
+      // In demo mode, the recurring widget shows the empty state
+      // since the hook is skipped. Check for either data or empty state.
+      const hasData = await page.getByText(/monthly expenses/i).isVisible().catch(() => false);
+      const hasEmpty = await page.getByText(/no recurring transactions detected/i).isVisible().catch(() => false);
+
+      expect(hasData || hasEmpty).toBe(true);
+    });
+  });
+
+  test.describe('AI Insights Widget', () => {
+    test('should display AI insights section', async ({ page }) => {
+      await expect(page.getByText(/ai insights/i).first()).toBeVisible();
+    });
+
+    test('should show empty or data state for insights', async ({ page }) => {
+      // In demo mode, insights widget shows empty state
+      // since the hook is skipped. Check for either data or empty state.
+      const hasInsights = await page.getByText(/ask about this/i).first().isVisible().catch(() => false);
+      const hasEmpty = await page.getByText(/no insights available yet/i).isVisible().catch(() => false);
+
+      expect(hasInsights || hasEmpty).toBe(true);
+    });
+
+    test('should have link to planning page', async ({ page }) => {
+      // Either "View All Insights" or "Go to Financial Planning" link
+      const planningLink = page.locator('a[href="/planning"]');
+      await expect(planningLink.first()).toBeVisible();
+    });
+  });
+
+  test.describe('Dashboard Layout Grid', () => {
+    test('should display net worth and portfolio side by side on desktop', async ({ page }) => {
+      const isMobile = (page.viewportSize()?.width ?? 1280) < 1024;
+
+      if (!isMobile) {
+        // Both should be visible on desktop
+        const netWorth = page.getByText(/net worth/i).first();
+        const portfolio = page.getByText(/portfolio/i).first();
+
+        await expect(netWorth).toBeVisible();
+        await expect(portfolio).toBeVisible();
+      }
+    });
+
+    test('should render all dashboard sections', async ({ page }) => {
+      // Verify all major sections are present on the page
+      await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
+      await expect(page.getByText(/total balance/i)).toBeVisible();
+      await expect(page.getByText(/savings goals/i).first()).toBeVisible();
+      await expect(page.getByText(/recurring bills/i).first()).toBeVisible();
+      await expect(page.getByText(/ai insights/i).first()).toBeVisible();
+      await expect(page.getByText(/recent transactions/i)).toBeVisible();
     });
   });
 

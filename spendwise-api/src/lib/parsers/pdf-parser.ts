@@ -96,7 +96,77 @@ function detectAccountFromText(text: string, _fileName: string): DetectedAccount
     account.accountMask = acctMatch[1];
   }
 
+  // Try to extract a specific product/account name from the statement header
+  // e.g. "Wells Fargo Active Cash Visa Card", "Chase Sapphire Preferred", "Autograph℠ Card"
+  const productName = detectProductName(headerText, account.institution);
+  if (productName) {
+    account.accountName = productName;
+  } else {
+    // Build a descriptive name from institution + account type
+    const typeLabel: Record<string, string> = {
+      CHECKING: 'Checking',
+      SAVINGS: 'Savings',
+      CREDIT: 'Credit Card',
+      INVESTMENT: 'Investment',
+    };
+    const parts: string[] = [];
+    if (account.institution) parts.push(account.institution);
+    if (account.accountType) parts.push(typeLabel[account.accountType] || account.accountType);
+    if (account.accountMask) parts.push(`···${account.accountMask}`);
+    account.accountName = parts.length > 0 ? parts.join(' ') : undefined;
+  }
+
   return account;
+}
+
+/**
+ * Try to extract a specific credit card or account product name from the statement header.
+ * Looks for known product name patterns near the institution name.
+ */
+function detectProductName(headerText: string, institution?: string): string | undefined {
+  // Common credit card product name patterns (institution-specific)
+  const productPatterns: RegExp[] = [
+    // Wells Fargo products
+    /wells\s+fargo\s+(active\s+cash)\b/i,
+    /wells\s+fargo\s+(autograph\S*)\s/i,
+    /wells\s+fargo\s+(reflect\S*)\s/i,
+    /wells\s+fargo\s+(platinum)\b/i,
+    // Chase products
+    /chase\s+(sapphire\s+(?:preferred|reserve))\b/i,
+    /chase\s+(freedom\s*(?:unlimited|flex|rise)?)\b/i,
+    /chase\s+(slate)\b/i,
+    /chase\s+(amazon\s+prime)\b/i,
+    // Capital One products
+    /capital\s+one\s+(venture\s*(?:one|x)?)\b/i,
+    /capital\s+one\s+(quicksilver\s*(?:one)?)\b/i,
+    /capital\s+one\s+(savor\s*(?:one)?)\b/i,
+    // Citi products
+    /citi\s*(double\s+cash)\b/i,
+    /citi\s*(custom\s+cash)\b/i,
+    /citi\s*(premier)\b/i,
+    // Amex products
+    /american\s+express\s*(gold)\b/i,
+    /american\s+express\s*(platinum)\b/i,
+    /(blue\s+cash\s+(?:preferred|everyday))\b/i,
+    // Discover products
+    /discover\s+(it\b.*?(?:cash|chrome|miles|student)?)\b/i,
+    // Generic: "XYZ Card Statement" or "XYZ Account Statement"
+    /([\w\s]+?)\s+(?:card|account)\s+statement/i,
+  ];
+
+  for (const pattern of productPatterns) {
+    const match = headerText.match(pattern);
+    if (match && match[1]) {
+      const product = match[1].trim().replace(/[℠®™]/g, '');
+      // Build full name: "Wells Fargo Active Cash"
+      if (institution && !product.toLowerCase().startsWith(institution.toLowerCase())) {
+        return `${institution} ${product}`;
+      }
+      return product;
+    }
+  }
+
+  return undefined;
 }
 
 // ── Transaction History Table Extraction ──
@@ -175,6 +245,21 @@ const SKIP_LINE_PATTERNS = [
   /\btotal\s+(?:deposits|withdrawals|credits|debits|charges|fees|interest)\b/i,
   /\btotal\s+.*\bfor\s+this\s+period\b/i,
   /\boverdraft\s+protection\b/i,
+];
+
+// Descriptions that are summary/category labels, not real transactions.
+// These appear in interest charge calculation sections of credit card statements.
+const SUMMARY_DESCRIPTION_PATTERNS = [
+  /^purchases?$/i,
+  /^cash\s+advances?$/i,
+  /^balance\s+transfers?$/i,
+  /^fees?$/i,
+  /^interest$/i,
+  /^charges?$/i,
+  /^credits?$/i,
+  /^adjustments?$/i,
+  /^payments?$/i,
+  /^other$/i,
 ];
 
 function lineStartsWithDate(line: string): boolean {
@@ -466,6 +551,9 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
 
     const desc = description.trim() || 'Transaction';
 
+    // Skip summary/category labels (e.g. "PURCHASES" from interest charge sections)
+    if (SUMMARY_DESCRIPTION_PATTERNS.some((p) => p.test(desc))) return;
+
     if (isColumnFormat) {
       // For column format: store raw (unsigned) with ending balance if present
       const raw: RawTransaction = {
@@ -543,12 +631,15 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
         pendingDate = null;
         pendingDescription = '';
         pendingDateKey = '';
-        sectionTransactions.push({
-          date: ccTxn.transDate,
-          amount: ccTxn.amount,
-          description: ccTxn.description,
-          type: currentType,
-        });
+        // Skip summary/category labels
+        if (!SUMMARY_DESCRIPTION_PATTERNS.some((p) => p.test(ccTxn.description))) {
+          sectionTransactions.push({
+            date: ccTxn.transDate,
+            amount: ccTxn.amount,
+            description: ccTxn.description,
+            type: currentType,
+          });
+        }
         continue;
       }
     }
