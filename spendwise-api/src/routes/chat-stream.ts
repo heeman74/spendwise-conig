@@ -6,15 +6,13 @@ import { prisma } from '../lib/prisma';
 import { checkRateLimit } from '../services/financialPlanning/rate-limiter';
 import { buildFinancialSummary } from '../services/financialPlanning/financial-summarizer';
 import { streamChatResponse } from '../services/financialPlanning/claude-client';
+import { corsOptions } from '../config/cors';
 
 export const chatStreamRouter = Router();
 
 chatStreamRouter.use(
   '/stream',
-  cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
-    credentials: true,
-  })
+  cors(corsOptions)
 );
 
 chatStreamRouter.post('/stream', express.json(), async (req, res) => {

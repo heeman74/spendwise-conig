@@ -85,19 +85,6 @@ function AnalyticsContent() {
     setSelectedCategory((prev) => prev === category ? null : category);
   }, []);
 
-  // Error handling
-  if (analyticsError || categoriesError || merchantsError) {
-    return (
-      <div className="space-y-6">
-        <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
-          <p className="text-red-800 dark:text-red-300">
-            Failed to load analytics. Please try again.
-          </p>
-        </Card>
-      </div>
-    );
-  }
-
   // Helper to render comparison with proper colors
   const renderComparison = (change: number | undefined | null, isExpense: boolean = false) => {
     if (change === undefined || change === null) {
@@ -150,6 +137,19 @@ function AnalyticsContent() {
     const sorted = Object.values(groups).sort((a, b) => b.totalAmount - a.totalAmount);
     return { groups: sorted, grandTotal, transactionCount: drillDownTransactions.length };
   }, [selectedCategory, drillDownTransactions]);
+
+  // Error handling (placed after all hooks to satisfy Rules of Hooks)
+  if (analyticsError || categoriesError || merchantsError) {
+    return (
+      <div className="space-y-6">
+        <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+          <p className="text-red-800 dark:text-red-300">
+            Failed to load analytics. Please try again.
+          </p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

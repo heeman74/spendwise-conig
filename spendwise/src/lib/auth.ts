@@ -72,19 +72,21 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // Generate a signed JWT for the GraphQL backend
-        token.accessToken = jwt.sign(
-          { id: user.id, email: user.email, name: user.name },
-          process.env.NEXTAUTH_SECRET!,
-          { expiresIn: '30d' }
-        );
+        token.email = user.email;
+        token.name = user.name;
       }
+      // Regenerate short-lived access token on every session access
+      token.accessToken = jwt.sign(
+        { id: token.id, email: token.email, name: token.name },
+        process.env.NEXTAUTH_SECRET!,
+        { expiresIn: '1h' }
+      );
       return token;
     },
     async session({ session, token }) {

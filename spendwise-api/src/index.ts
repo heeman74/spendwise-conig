@@ -8,16 +8,24 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
+import helmet from 'helmet';
+import depthLimit from 'graphql-depth-limit';
 import { typeDefs, resolvers } from './schema';
 import { createContext, Context } from './context';
 import { plaidWebhookRouter } from './routes/plaid-webhooks';
 import { statementUploadRouter } from './routes/statement-upload';
 import { chatStreamRouter } from './routes/chat-stream';
 import { setupNetWorthSnapshotQueue } from './lib/jobs/snapshotNetWorth';
+import { generalLimiter } from './middleware/rateLimiter';
+import { corsOptions } from './config/cors';
 
 async function startServer() {
   const app = express();
   const httpServer = http.createServer(app);
+
+  // Security middleware
+  app.use(helmet());
+  app.use(generalLimiter);
 
   // Register webhook routes BEFORE GraphQL middleware
   // Webhooks use express.raw() for signature verification, not express.json()
@@ -29,37 +37,47 @@ async function startServer() {
   // Register chat streaming route (SSE endpoint for AI responses)
   app.use('/api/chat', chatStreamRouter);
 
+  const safeErrorCodes = new Set([
+    'UNAUTHENTICATED',
+    'BAD_USER_INPUT',
+    'FORBIDDEN',
+    'GRAPHQL_VALIDATION_FAILED',
+    'GRAPHQL_PARSE_FAILED',
+    'PERSISTED_QUERY_NOT_FOUND',
+    'PERSISTED_QUERY_NOT_SUPPORTED',
+  ]);
+
   const server = new ApolloServer<Context>({
     typeDefs,
     resolvers,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    validationRules: [depthLimit(7)],
     formatError: (formattedError, error) => {
-      console.error('GraphQL Error:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('GraphQL Error:', error);
+      }
 
-      // Don't expose internal errors in production
-      if (
-        process.env.NODE_ENV === 'production' &&
-        formattedError.extensions?.code === 'INTERNAL_SERVER_ERROR'
-      ) {
-        return {
-          ...formattedError,
-          message: 'Internal server error',
-        };
+      // In production, only expose messages for known safe error codes
+      if (process.env.NODE_ENV === 'production') {
+        const code = formattedError.extensions?.code as string;
+        if (!safeErrorCodes.has(code)) {
+          return {
+            message: 'Internal server error',
+            extensions: { code: 'INTERNAL_SERVER_ERROR' },
+          };
+        }
       }
 
       return formattedError;
     },
-    introspection: true,
+    introspection: process.env.NODE_ENV !== 'production',
   });
 
   await server.start();
 
   app.use(
     '/graphql',
-    cors<cors.CorsRequest>({
-      origin: ['http://localhost:3000', 'http://localhost:3001'],
-      credentials: true,
-    }),
+    cors<cors.CorsRequest>(corsOptions),
     express.json(),
     expressMiddleware(server, {
       context: createContext,

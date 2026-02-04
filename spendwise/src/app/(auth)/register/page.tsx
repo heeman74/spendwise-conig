@@ -38,16 +38,15 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError('');
 
-    //Todo: Complex password validation can be added here later such as at least one special character, number, uppercase letter, and captial letter etc.
-
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+    const pw = formData.password;
+    if (pw.length < 8 || !/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[^A-Za-z0-9]/.test(pw)) {
+      setError('Password does not meet all requirements');
       setIsLoading(false);
       return;
     }
@@ -187,6 +186,25 @@ export default function RegisterPage() {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
           />
+          {formData.password && (
+            <ul className="text-xs space-y-1 -mt-2">
+              <li className={formData.password.length >= 8 ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
+                {formData.password.length >= 8 ? '\u2713' : '\u2717'} At least 8 characters
+              </li>
+              <li className={/[A-Z]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
+                {/[A-Z]/.test(formData.password) ? '\u2713' : '\u2717'} One uppercase letter
+              </li>
+              <li className={/[a-z]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
+                {/[a-z]/.test(formData.password) ? '\u2713' : '\u2717'} One lowercase letter
+              </li>
+              <li className={/[0-9]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
+                {/[0-9]/.test(formData.password) ? '\u2713' : '\u2717'} One number
+              </li>
+              <li className={/[^A-Za-z0-9]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}>
+                {/[^A-Za-z0-9]/.test(formData.password) ? '\u2713' : '\u2717'} One special character
+              </li>
+            </ul>
+          )}
           <Input
             label="Confirm Password"
             type="password"

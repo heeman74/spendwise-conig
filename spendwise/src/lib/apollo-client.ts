@@ -32,12 +32,16 @@ const errorLink = onError((errorResponse) => {
           }
           break;
       }
-      console.error(`[GraphQL error]: Message: ${err.message}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`[GraphQL error]: Message: ${err.message}`);
+      }
     }
   }
 
   if (networkError) {
-    console.error(`[Network error]: ${networkError}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(`[Network error]: ${networkError}`);
+    }
   }
 });
 

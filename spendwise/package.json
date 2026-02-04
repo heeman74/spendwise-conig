@@ -26,7 +26,7 @@
     "graphql": "^16.12.0",
     "ioredis": "^5.3.2",
     "jsonwebtoken": "^9.0.3",
-    "next": "14.1.0",
+    "next": "^16.1.6",
     "next-auth": "^4.24.6",
     "openai": "^4.28.0",
     "react": "^18.2.0",
@@ -36,6 +36,8 @@
     "react-plaid-link": "^4.1.1",
     "react-redux": "^9.1.0",
     "recharts": "^2.12.2",
+    "rehype-sanitize": "^6.0.0",
+    "rxjs": "^7.8.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -46,7 +48,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^20.11.20",
+    "@types/node": "^20.19.31",
     "@types/react": "^18.2.58",
     "@types/react-dom": "^18.2.19",
     "autoprefixer": "^10.4.17",
@@ -56,7 +58,8 @@
     "prisma": "^5.10.0",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
     "tsx": "^4.7.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.3"
   }
 }

@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import { cn } from '@/lib/utils';
 
 interface ChatMessageProps {
@@ -65,6 +66,7 @@ export default function ChatMessage({
           ) : (
             <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown
+                rehypePlugins={[rehypeSanitize]}
                 components={{
                   // Custom link renderer for internal app links
                   a: ({ href, children, ...props }) => {
