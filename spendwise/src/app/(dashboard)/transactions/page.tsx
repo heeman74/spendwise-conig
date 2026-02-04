@@ -421,7 +421,7 @@ function TransactionsPageContent() {
       )}
 
       {/* Tab bar */}
-      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit max-w-full overflow-x-auto">
         <button
           onClick={() => setActiveTab('all')}
           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
@@ -452,7 +452,7 @@ function TransactionsPageContent() {
       {/* Category summary banner */}
       {categorySummary && filters.category && (
         <Card>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{filters.category}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -567,7 +567,7 @@ function TransactionsPageContent() {
         size="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Amount"
               type="number"
@@ -585,7 +585,7 @@ function TransactionsPageContent() {
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select
               label="Type"
               options={transactionTypes}
@@ -661,6 +661,7 @@ function TransactionsPageContent() {
             <Button
               type="button"
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => {
                 setIsModalOpen(false);
                 setEditingTransaction(null);
@@ -670,7 +671,7 @@ function TransactionsPageContent() {
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="primary" className="w-full sm:w-auto">
               {editingTransaction ? 'Save Changes' : 'Add Transaction'}
             </Button>
           </ModalFooter>

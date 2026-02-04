@@ -109,42 +109,9 @@ export default function TransactionList({
     : '';
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead
-            className={sortableClass}
-            onClick={() => handleSort('DATE')}
-          >
-            <span className="inline-flex items-center">
-              Date
-              {onSort && <SortIcon field="DATE" sort={sort} />}
-            </span>
-          </TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead
-            className={sortableClass}
-            onClick={() => handleSort('CATEGORY')}
-          >
-            <span className="inline-flex items-center">
-              Category
-              {onSort && <SortIcon field="CATEGORY" sort={sort} />}
-            </span>
-          </TableHead>
-          <TableHead>Account</TableHead>
-          <TableHead
-            className={`text-right ${sortableClass}`}
-            onClick={() => handleSort('AMOUNT')}
-          >
-            <span className="inline-flex items-center justify-end w-full">
-              Amount
-              {onSort && <SortIcon field="AMOUNT" sort={sort} />}
-            </span>
-          </TableHead>
-          <TableHead className="w-[100px]">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Mobile card layout */}
+      <div className="sm:hidden divide-y divide-gray-200 dark:divide-gray-700">
         {transactions.map((transaction) => (
           <TransactionItem
             key={transaction.id}
@@ -154,9 +121,64 @@ export default function TransactionList({
             onMarkRecurring={onMarkRecurring}
             onCategoryClick={onCategoryClick}
             showConfidenceDetail={showConfidenceDetail}
+            variant="card"
           />
         ))}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop table layout */}
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead
+                className={sortableClass}
+                onClick={() => handleSort('DATE')}
+              >
+                <span className="inline-flex items-center">
+                  Date
+                  {onSort && <SortIcon field="DATE" sort={sort} />}
+                </span>
+              </TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead
+                className={sortableClass}
+                onClick={() => handleSort('CATEGORY')}
+              >
+                <span className="inline-flex items-center">
+                  Category
+                  {onSort && <SortIcon field="CATEGORY" sort={sort} />}
+                </span>
+              </TableHead>
+              <TableHead>Account</TableHead>
+              <TableHead
+                className={`text-right ${sortableClass}`}
+                onClick={() => handleSort('AMOUNT')}
+              >
+                <span className="inline-flex items-center justify-end w-full">
+                  Amount
+                  {onSort && <SortIcon field="AMOUNT" sort={sort} />}
+                </span>
+              </TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {transactions.map((transaction) => (
+              <TransactionItem
+                key={transaction.id}
+                transaction={transaction}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onMarkRecurring={onMarkRecurring}
+                onCategoryClick={onCategoryClick}
+                showConfidenceDetail={showConfidenceDetail}
+                variant="table"
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

@@ -69,20 +69,20 @@ export default function TransactionFilters({
             }
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Select
             options={transactionTypes}
             value={filters.type || ''}
             onChange={(e) =>
               onFiltersChange({ type: (e.target.value as TransactionType) || null })
             }
-            className="w-32"
+            className="sm:w-32"
           />
           <Select
             options={categoryOptions}
             value={filters.category || ''}
             onChange={(e) => onFiltersChange({ category: e.target.value || null })}
-            className="w-40"
+            className="sm:w-40"
           />
           <Button
             variant="outline"

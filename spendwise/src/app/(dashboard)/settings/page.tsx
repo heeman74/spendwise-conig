@@ -162,7 +162,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -184,7 +184,7 @@ export default function SettingsPage() {
 
       {/* Two-Factor Authentication Section */}
       <Card>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -198,9 +198,9 @@ export default function SettingsPage() {
 
           <div className="space-y-4">
             {/* Email 2FA */}
-            <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
@@ -217,7 +217,7 @@ export default function SettingsPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 self-end sm:self-auto">
                 {status?.emailEnabled ? (
                   <>
                     <Badge variant="success">Enabled</Badge>
@@ -247,9 +247,9 @@ export default function SettingsPage() {
             </div>
 
             {/* SMS 2FA */}
-            <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
@@ -271,7 +271,7 @@ export default function SettingsPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 self-end sm:self-auto">
                 {status?.smsEnabled ? (
                   <>
                     <Badge variant="success">Enabled</Badge>
@@ -301,9 +301,9 @@ export default function SettingsPage() {
             </div>
 
             {/* Backup Codes */}
-            <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
@@ -318,7 +318,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 self-end sm:self-auto">
                 <Modal
                   isOpen={showBackupCodesModal}
                   onClose={() => setShowBackupCodesModal(false)}
@@ -334,7 +334,7 @@ export default function SettingsPage() {
                     {backupCodes.length > 0 ? (
                       <>
                         <div className="bg-gray-50 border border-gray-200 rounded p-4">
-                          <div className="grid grid-cols-2 gap-2 font-mono text-sm">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-sm">
                             {backupCodes.map((code, index) => (
                               <div key={index} className="bg-white px-3 py-2 rounded border border-gray-300 text-center">
                                 {code}
@@ -625,7 +625,7 @@ function CategoryManagement() {
 
   return (
     <Card>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Categories</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -646,7 +646,7 @@ function CategoryManagement() {
         )}
 
         {/* Add new category */}
-        <div className="flex items-end gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Name
@@ -660,7 +660,7 @@ function CategoryManagement() {
               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
           </div>
-          <div className="w-32">
+          <div className="w-full sm:w-32">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Type
             </label>
@@ -690,7 +690,7 @@ function CategoryManagement() {
             <Spinner size="lg" />
           </div>
         ) : (
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>

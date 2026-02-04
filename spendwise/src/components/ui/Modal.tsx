@@ -34,7 +34,8 @@ export default function Modal({
       <div className="flex min-h-full items-center justify-center p-4">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/50 transition-opacity"
+          className="fixed inset-0 bg-black/50"
+          style={{ animation: 'modal-overlay-in 200ms ease-out' }}
           onClick={onClose}
           aria-hidden="true"
         />
@@ -42,14 +43,15 @@ export default function Modal({
         {/* Modal panel */}
         <div
           className={cn(
-            'relative w-full transform rounded-xl bg-white p-6 shadow-xl transition-all dark:bg-gray-800',
+            'relative w-full rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800',
             sizes[size]
           )}
+          style={{ animation: 'modal-panel-in 200ms ease-out' }}
         >
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+            className="absolute right-2 top-2 p-3 rounded-lg text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
           >
             <span className="sr-only">Close</span>
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -88,7 +90,7 @@ interface ModalFooterProps {
 
 export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
-    <div className={cn('mt-6 flex justify-end gap-3', className)}>
+    <div className={cn('mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3', className)}>
       {children}
     </div>
   );

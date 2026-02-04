@@ -13,14 +13,111 @@ interface TransactionItemProps {
   onMarkRecurring?: (transaction: Transaction) => void;
   onCategoryClick?: (category: string) => void;
   showConfidenceDetail?: boolean;
+  variant?: 'table' | 'card';
 }
 
-export default function TransactionItem({ transaction, onEdit, onDelete, onMarkRecurring, onCategoryClick, showConfidenceDetail }: TransactionItemProps) {
+export default function TransactionItem({ transaction, onEdit, onDelete, onMarkRecurring, onCategoryClick, showConfidenceDetail, variant = 'table' }: TransactionItemProps) {
   const typeVariant = {
     INCOME: 'success' as const,
     EXPENSE: 'danger' as const,
     TRANSFER: 'info' as const,
   };
+
+  if (variant === 'card') {
+    return (
+      <div className="px-4 py-3">
+        {/* Row 1: Icon + Merchant/Date + Amount */}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${getCategoryColor(transaction.category)}20` }}
+          >
+            <span className="text-base" style={{ color: getCategoryColor(transaction.category) }}>
+              {getIcon(transaction.category)}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              {transaction.merchant || transaction.description || transaction.category}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {formatDate(transaction.date)} · {transaction.account?.name || 'Unknown'}
+            </p>
+          </div>
+          <span
+            className={`text-sm font-semibold flex-shrink-0 ${
+              transaction.type === 'INCOME'
+                ? 'text-green-600 dark:text-green-400'
+                : transaction.type === 'EXPENSE'
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-gray-600 dark:text-gray-400'
+            }`}
+          >
+            {transaction.type === 'INCOME' ? '+' : transaction.type === 'EXPENSE' ? '-' : ''}
+            {formatCurrency(Math.abs(transaction.amount))}
+          </span>
+        </div>
+        {/* Row 2: Badges + Actions */}
+        <div className="flex items-center justify-between mt-2 ml-13">
+          <div className="flex items-center gap-1.5">
+            <Badge
+              size="sm"
+              style={{
+                backgroundColor: `${getCategoryColor(transaction.category)}20`,
+                color: getCategoryColor(transaction.category),
+                cursor: onCategoryClick ? 'pointer' : undefined,
+              }}
+              onClick={onCategoryClick ? () => onCategoryClick(transaction.category) : undefined}
+            >
+              {transaction.category}
+            </Badge>
+            {transaction.recurringInfo && (
+              <Badge
+                size="sm"
+                className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+              >
+                {transaction.recurringInfo.frequency.charAt(0) + transaction.recurringInfo.frequency.slice(1).toLowerCase()}
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {onEdit && (
+              <Button variant="ghost" size="sm" onClick={() => onEdit(transaction)} className="p-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </Button>
+            )}
+            {onMarkRecurring && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onMarkRecurring(transaction)}
+                className="p-2 text-primary-600 hover:text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20"
+                title="Mark as recurring"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(transaction.id)}
+                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <TableRow>

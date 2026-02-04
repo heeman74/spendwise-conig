@@ -10,12 +10,12 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', padding = 'md', children, ...props }, ref) => {
-    const baseStyles = 'rounded-xl bg-white dark:bg-gray-800';
+    const baseStyles = 'rounded-xl bg-white dark:bg-gray-800 transition-shadow';
 
     const variants = {
-      default: 'shadow-sm',
+      default: 'shadow-sm border border-gray-100 dark:border-gray-700/50',
       bordered: 'border border-gray-200 dark:border-gray-700',
-      elevated: 'shadow-lg',
+      elevated: 'shadow-lg hover:shadow-xl',
     };
 
     const paddings = {
@@ -75,7 +75,7 @@ interface CardContentProps extends HTMLAttributes<HTMLDivElement> {}
 
 export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
   ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={cn('', className)} {...props}>
+    <div ref={ref} className={cn('space-y-4', className)} {...props}>
       {children}
     </div>
   )

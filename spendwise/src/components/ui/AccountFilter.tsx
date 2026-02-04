@@ -94,7 +94,7 @@ export default function AccountFilter({ accounts, selectedIds, onChange }: Accou
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 z-50 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
+        <div className="absolute left-0 z-50 mt-2 w-[calc(100vw-2rem)] sm:w-80 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-900 dark:text-white">Filter by Account</span>

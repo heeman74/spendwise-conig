@@ -36,7 +36,16 @@ const presets = [
 
 export default function DateRangePicker({ value, onChange }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 639px)');
+    setIsMobile(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,9 +100,9 @@ export default function DateRangePicker({ value, onChange }: DateRangePickerProp
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex">
-            <div className="flex flex-col gap-1 p-3 border-r border-gray-200 dark:border-gray-700">
+        <div className="absolute left-0 z-50 mt-2 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row">
+            <div className="flex flex-row sm:flex-col gap-1 p-3 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-gray-700 overflow-x-auto">
               {presets.map((preset) => (
                 <button
                   key={preset.label}
@@ -110,7 +119,7 @@ export default function DateRangePicker({ value, onChange }: DateRangePickerProp
                 mode="range"
                 selected={{ from: value.from, to: value.to }}
                 onSelect={handleDayPickerSelect}
-                numberOfMonths={2}
+                numberOfMonths={isMobile ? 1 : 2}
               />
             </div>
           </div>
