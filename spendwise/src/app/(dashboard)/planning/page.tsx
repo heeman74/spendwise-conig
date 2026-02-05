@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import InsightCard from '@/components/planning/InsightCard';
 import ChatInterface from '@/components/planning/ChatInterface';
 import { useActiveInsights } from '@/hooks/useFinancialPlanning';
 
 export default function PlanningPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="text-gray-500">Loading...</div></div>}>
+      <PlanningContent />
+    </Suspense>
+  );
+}
+
+function PlanningContent() {
   const searchParams = useSearchParams();
   const { insights, loading: insightsLoading } = useActiveInsights();
   const [askQuestion, setAskQuestion] = useState<string | null>(null);
