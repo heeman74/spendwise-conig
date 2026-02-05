@@ -65,6 +65,22 @@ export const accountResolvers = {
     ) => {
       const user = requireAuth(context);
 
+      // Check for existing account with same name, type, and institution
+      const existing = await context.prisma.account.findFirst({
+        where: {
+          userId: user.id,
+          name: input.name,
+          type: input.type,
+          institution: input.institution,
+        },
+      });
+
+      if (existing) {
+        throw new Error(
+          `An account named "${input.name}" at "${input.institution}" already exists.`
+        );
+      }
+
       const account = await context.prisma.account.create({
         data: {
           ...input,

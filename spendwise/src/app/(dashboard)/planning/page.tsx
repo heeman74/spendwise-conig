@@ -1,17 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import InsightCard from '@/components/planning/InsightCard';
 import ChatInterface from '@/components/planning/ChatInterface';
 import { useActiveInsights } from '@/hooks/useFinancialPlanning';
 
 export default function PlanningPage() {
+  const searchParams = useSearchParams();
   const { insights, loading: insightsLoading } = useActiveInsights();
-  const [chatInputValue, setChatInputValue] = useState('');
+  const [askQuestion, setAskQuestion] = useState<string | null>(null);
+
+  // Read ?ask= query param (from dashboard InsightsWidget navigation)
+  useEffect(() => {
+    const askParam = searchParams.get('ask');
+    if (askParam) {
+      setAskQuestion(askParam);
+    }
+  }, [searchParams]);
 
   const handleAskAbout = (title: string) => {
-    // This would populate the chat input - for now just scroll to chat
-    // In the actual implementation, we'd pass this to ChatInterface
+    setAskQuestion(title);
     const chatSection = document.getElementById('chat-section');
     chatSection?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -91,7 +100,7 @@ export default function PlanningPage() {
       {/* Chat section */}
       <div id="chat-section" className="flex-1 min-h-0">
         <div className="h-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <ChatInterface />
+          <ChatInterface initialQuestion={askQuestion} />
         </div>
       </div>
     </div>

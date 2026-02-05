@@ -13,11 +13,17 @@ import {
   useChatStream,
 } from '@/hooks/useFinancialPlanning';
 
-export default function ChatInterface() {
+interface ChatInterfaceProps {
+  initialQuestion?: string | null;
+}
+
+export default function ChatInterface({ initialQuestion }: ChatInterfaceProps = {}) {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [localMessages, setLocalMessages] = useState<any[]>([]);
   const [isThinking, setIsThinking] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialQuestionSentRef = useRef(false);
 
   // Data hooks
   const { sessions, loading: sessionsLoading } = useChatSessions();
@@ -55,6 +61,23 @@ export default function ChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [localMessages, streamedContent, isStreaming]);
+
+  // Track incoming initialQuestion
+  useEffect(() => {
+    if (initialQuestion && !initialQuestionSentRef.current) {
+      setPendingQuestion(initialQuestion);
+    }
+  }, [initialQuestion]);
+
+  // Auto-send pending question once session is ready
+  useEffect(() => {
+    if (pendingQuestion && activeSessionId && !isThinking && !isStreaming && !initialQuestionSentRef.current) {
+      initialQuestionSentRef.current = true;
+      const question = pendingQuestion;
+      setPendingQuestion(null);
+      handleSendMessage(`Tell me more about this insight: ${question}`);
+    }
+  }, [pendingQuestion, activeSessionId, isThinking, isStreaming]);
 
   const handleNewChat = async () => {
     try {
@@ -192,6 +215,7 @@ export default function ChatInterface() {
         disabled={isInputDisabled}
         remaining={remaining}
         resetAt={resetAt}
+        initialMessage={pendingQuestion || undefined}
       />
     </div>
   );

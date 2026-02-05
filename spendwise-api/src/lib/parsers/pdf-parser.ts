@@ -242,6 +242,7 @@ const SKIP_LINE_PATTERNS = [
   /\bprevious\s+balance\b/i,
   /\bnew\s+balance\b/i,
   /\bbalance\s+forward\b/i,
+  /\blast\s+statement\s+bal/i,
   /\btotal\s+(?:deposits|withdrawals|credits|debits|charges|fees|interest)\b/i,
   /\btotal\s+.*\bfor\s+this\s+period\b/i,
   /\boverdraft\s+protection\b/i,
@@ -260,6 +261,7 @@ const SUMMARY_DESCRIPTION_PATTERNS = [
   /^adjustments?$/i,
   /^payments?$/i,
   /^other$/i,
+  /^transaction$/i,
 ];
 
 function lineStartsWithDate(line: string): boolean {
@@ -494,24 +496,65 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
   for (let i = 0; i < lines.length; i++) {
     const lower = lines[i].toLowerCase();
     if (TABLE_START_PATTERNS.some((p) => p.test(lower))) {
+      // Verify this isn't a false start (table-end hit or no date lines within 20 lines)
+      let isFalseStart = false;
+      let hasDateLines = false;
+      for (let j = i + 1; j < Math.min(i + 20, lines.length); j++) {
+        if (lineStartsWithDate(lines[j])) {
+          hasDateLines = true;
+          break;
+        }
+        if (TABLE_END_PATTERNS.some((p) => p.test(lines[j].toLowerCase()))) {
+          isFalseStart = true;
+          break;
+        }
+      }
+      if (isFalseStart || !hasDateLines) continue;
+
       tableStartIdx = i + 1;
       foundExplicitStart = true;
       break;
     }
   }
 
-  // Fallback: look for first sub-section header
+  // Fallback: look for first sub-section header that is near actual transactions
   if (tableStartIdx === -1) {
     for (let i = 0; i < lines.length; i++) {
       if (lineStartsWithDate(lines[i])) continue;
+      // Real sub-section headers are short; skip long paragraph text
+      if (lines[i].length > 60) continue;
       const lower = lines[i].toLowerCase();
+      let matched = false;
       for (const [pattern] of SUB_SECTION_PATTERNS) {
         if (pattern.test(lower)) {
-          tableStartIdx = i;
+          matched = true;
           break;
         }
       }
-      if (tableStartIdx !== -1) break;
+      if (!matched) continue;
+      // Verify there are date-starting lines within the next 30 lines
+      let hasNearbyDates = false;
+      for (let j = i + 1; j < Math.min(i + 30, lines.length); j++) {
+        if (lineStartsWithDate(lines[j]) && lineHasAmount(lines[j])) {
+          hasNearbyDates = true;
+          break;
+        }
+      }
+      if (hasNearbyDates) {
+        tableStartIdx = i;
+        break;
+      }
+    }
+  }
+
+  // Fallback: find the first line that looks like a transaction (date + amount)
+  if (tableStartIdx === -1) {
+    for (let i = 0; i < lines.length; i++) {
+      if (lineStartsWithDate(lines[i]) && lineHasAmount(lines[i])) {
+        tableStartIdx = i;
+        foundExplicitStart = true;
+        break;
+      }
     }
   }
 
@@ -521,14 +564,28 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
   const isColumnFormat = foundExplicitStart && detectColumnFormat(lines, tableStartIdx);
   const isCreditCardFormat = foundExplicitStart && !isColumnFormat && detectCreditCardFormat(lines, tableStartIdx);
 
-  // ── Step 3: Detect statement year ──
+  // ── Step 3: Detect statement year and month ──
   let currentYear = new Date().getFullYear();
+  let statementMonth = -1; // 0-indexed month of the statement date
+  const monthNames: Record<string, number> = {
+    january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+    july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+  };
   const yearMatch = text.match(/(?:statement\s+(?:period|date)|december|january|february|march|april|may|june|july|august|september|october|november).*?(\d{4})/i) ||
     text.match(/(\d{1,2}\/\d{1,2}\/(\d{4}))/);
   if (yearMatch) {
     const y = parseInt(yearMatch[2] || yearMatch[1]);
     if (y >= 2000 && y <= 2100) currentYear = y;
+    // Extract statement month from the match (e.g. "February 2026" → month 1)
+    const monthWord = yearMatch[0].match(/january|february|march|april|may|june|july|august|september|october|november|december/i);
+    if (monthWord) {
+      statementMonth = monthNames[monthWord[0].toLowerCase()];
+    }
   }
+
+  // For cross-year billing periods (e.g. Dec-Jan statement dated January 2026),
+  // determine if we need to adjust December dates to the previous year
+  const adjustDecemberYear = statementMonth >= 0 && statementMonth <= 2; // Jan, Feb, Mar statements may contain prior-year December txns
 
   // ── Step 4: Walk through lines, collecting raw transactions ──
   let currentType: TransactionType = 'EXPENSE';
@@ -571,12 +628,14 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
       }
       rawTransactions.push(raw);
     } else {
-      // Section format: use currentType directly
+      // Section format: use currentType, but override with amount sign when present
+      // Negative amounts on credit card statements indicate payments/credits (INCOME)
+      const type = firstAmount < 0 ? 'INCOME' : currentType;
       sectionTransactions.push({
         date,
         amount: Math.abs(firstAmount),
         description: desc,
-        type: currentType,
+        type,
       });
     }
   }
@@ -659,11 +718,16 @@ function extractTransactionsFromText(text: string, warnings: string[]): ParsedTr
       const dateParts = dateMatch[1].split('/');
       const month = parseInt(dateParts[0]) - 1;
       const day = parseInt(dateParts[1]);
-      const year = dateParts[2]
+      let year = dateParts[2]
         ? dateParts[2].length === 2
           ? 2000 + parseInt(dateParts[2])
           : parseInt(dateParts[2])
         : currentYear;
+
+      // Adjust year for cross-year billing periods (e.g. Dec txns in a Jan statement)
+      if (!dateParts[2] && adjustDecemberYear && month >= 10 && statementMonth <= 2) {
+        year = currentYear - 1;
+      }
 
       const date = new Date(year, month, day);
       if (isNaN(date.getTime())) continue;

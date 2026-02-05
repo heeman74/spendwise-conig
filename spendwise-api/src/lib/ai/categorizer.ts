@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { redis } from '../redis';
-import { cleanMerchantName, generateMerchantFingerprint } from '../parsers/merchant-cleaner';
+import { cleanMerchantName, generateMerchantFingerprint, extractDescriptionPattern } from '../parsers/merchant-cleaner';
 import { categorizeTransactionWithConfidence } from '../parsers/categorizer';
 import type { ParsedTransaction } from '../parsers/types';
 import { VALID_CATEGORIES, getUserCategoryNames } from '../constants';
@@ -118,6 +118,61 @@ export async function categorizeTransactionsAI(
         source: 'rule',
         cleanedMerchant: rule.merchantDisplay || displayName,
       };
+    }
+  }
+
+  // Step 2b: Pattern-based matching for transactions that didn't get an exact rule match
+  const needsPatternMatch: number[] = [];
+  for (let i = 0; i < transactions.length; i++) {
+    if (!results[i]) needsPatternMatch.push(i);
+  }
+
+  if (needsPatternMatch.length > 0) {
+    try {
+      // Load all merchant rules for this user (typically < 100)
+      const allRules = await prisma.merchantRule.findMany({
+        where: { userId },
+        select: { merchantPattern: true, merchantDisplay: true, category: true },
+      });
+
+      if (allRules.length > 0) {
+        // Pre-compute description pattern for each rule from merchantDisplay
+        const rulePatterns = allRules
+          .map((rule: any) => ({
+            pattern: extractDescriptionPattern(rule.merchantDisplay || ''),
+            category: rule.category,
+            merchantDisplay: rule.merchantDisplay,
+          }))
+          .filter((rp: any) => rp.pattern.length > 0);
+
+        // Sort by pattern length descending (longest = most specific first)
+        rulePatterns.sort((a: any, b: any) => b.pattern.length - a.pattern.length);
+
+        if (rulePatterns.length > 0) {
+          for (const idx of needsPatternMatch) {
+            const raw = transactions[idx].merchant || transactions[idx].description || '';
+            const txnPattern = extractDescriptionPattern(raw);
+            if (!txnPattern) continue;
+
+            // Find first rule whose pattern is a prefix of txn pattern, or vice versa
+            const match = rulePatterns.find(
+              (rp: any) => txnPattern.startsWith(rp.pattern) || rp.pattern.startsWith(txnPattern)
+            );
+
+            if (match) {
+              results[idx] = {
+                ...transactions[idx],
+                category: match.category,
+                confidence: 95,
+                source: 'rule',
+                cleanedMerchant: match.merchantDisplay || cleanedNames[idx].displayName,
+              };
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Pattern-based rule matching failed:', error);
     }
   }
 

@@ -59,9 +59,17 @@ function createApolloClient() {
                 if (!existing || args?.pagination?.page === 1) {
                   return incoming;
                 }
+                // Deduplicate edges by node reference to prevent duplicate keys
+                const existingEdges = existing?.edges || [];
+                const seen = new Set(
+                  existingEdges.map((e: any) => e.node?.__ref ?? e.node?.id)
+                );
+                const newEdges = (incoming?.edges || []).filter(
+                  (e: any) => !seen.has(e.node?.__ref ?? e.node?.id)
+                );
                 return {
                   ...incoming,
-                  edges: [...(existing?.edges || []), ...(incoming?.edges || [])],
+                  edges: [...existingEdges, ...newEdges],
                 };
               },
             },

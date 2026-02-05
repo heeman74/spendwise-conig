@@ -100,6 +100,61 @@ export function cleanMerchantName(raw: string): CleanedMerchant {
   };
 }
 
+/**
+ * Extract a stable "company name" pattern from a raw transaction description.
+ * Strips POS prefixes, checks known merchants, then walks tokens stopping at
+ * the first purely-numeric token with 6+ digits. Returns a normalized key of
+ * the leading meaningful words, or '' if the result is too short (< 3 chars).
+ *
+ * Examples:
+ *   "Prudential Payments 251117 824436798310054 Hee Chung" → "prudentialpayments"
+ *   "AMZN MKTP US*AB1CD2EF3" → "amazon"
+ *   "SQ *BLUE BOTTLE COFFEE" → "bluebottlecoffee"
+ *   "7-ELEVEN STORE #1234"   → "7elevenstore"
+ */
+export function extractDescriptionPattern(raw: string): string {
+  if (!raw || !raw.trim()) return '';
+
+  let cleaned = raw.trim();
+
+  // Strip POS prefixes
+  for (const prefix of POS_PREFIXES) {
+    if (cleaned.toUpperCase().startsWith(prefix)) {
+      cleaned = cleaned.slice(prefix.length).trim();
+      break;
+    }
+  }
+
+  if (!cleaned) return '';
+
+  // Check known merchants first
+  const lower = cleaned.toLowerCase();
+  for (const [pattern, displayName] of Object.entries(KNOWN_MERCHANTS)) {
+    if (lower.includes(pattern)) {
+      return normalizeForKey(displayName);
+    }
+  }
+
+  // Strip # characters (store numbers like #1234)
+  cleaned = cleaned.replace(/#/g, '');
+
+  // Split into tokens, keep only leading meaningful words
+  const tokens = cleaned.split(/\s+/);
+  const meaningful: string[] = [];
+
+  for (const token of tokens) {
+    // Stop at the first purely-numeric token with 6+ digits
+    const digitsOnly = token.replace(/[^0-9]/g, '');
+    if (/^\d+$/.test(token) && digitsOnly.length >= 6) {
+      break;
+    }
+    meaningful.push(token);
+  }
+
+  const pattern = normalizeForKey(meaningful.join(' '));
+  return pattern.length >= 3 ? pattern : '';
+}
+
 export function generateMerchantFingerprint(merchant: string): string {
   const { normalizedKey } = cleanMerchantName(merchant);
   return `merchant:cat:${normalizedKey}`;

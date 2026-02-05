@@ -103,23 +103,24 @@ export default function InsightCard({
             {displayContent}
           </p>
 
-          {/* Read more / Show less */}
-          {needsTruncation && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-sm text-primary-600 dark:text-primary-400 hover:underline mt-1"
-            >
-              {isExpanded ? 'Show less' : 'Read more'}
-            </button>
-          )}
+          {/* Action links */}
+          <div className="flex items-center gap-4 mt-3">
+            {needsTruncation && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+              >
+                {isExpanded ? 'Show less' : 'Read more'}
+              </button>
+            )}
 
-          {/* Ask about this button */}
-          <button
-            onClick={() => onAskAbout(title)}
-            className="mt-3 text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
-          >
-            Ask about this →
-          </button>
+            <button
+              onClick={() => onAskAbout(title)}
+              className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+            >
+              Ask about this →
+            </button>
+          </div>
         </div>
       </div>
     </div>

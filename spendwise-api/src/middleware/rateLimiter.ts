@@ -11,7 +11,7 @@ export const generalLimiter = rateLimit({
 
 // File upload protection — expensive operations (parsing, AI)
 export const uploadLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 30 * 60 * 1000, // 1 hour
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,

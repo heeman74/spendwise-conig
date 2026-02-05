@@ -58,6 +58,7 @@ export default function ImportPage() {
   useEffect(() => {
     if (step === 'preview' && allDone) {
       setStep('done');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [step, allDone]);
 

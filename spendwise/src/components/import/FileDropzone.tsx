@@ -5,7 +5,7 @@ import Button from '@/components/ui/Button';
 
 const ALLOWED_EXTENSIONS = ['.csv', '.ofx', '.qfx', '.pdf'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_FILES = 10;
+const MAX_FILES = 20;
 
 interface FileDropzoneProps {
   onFilesSelected: (files: File[]) => void;

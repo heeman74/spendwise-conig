@@ -155,9 +155,31 @@ export const plaidResolvers = {
           },
         });
 
-        // Create Account records for each account
+        // Create Account records for each account (skip if already linked)
         let accountsCreated = 0;
         for (const plaidAccount of accountsResponse.data.accounts) {
+          // Check if this Plaid account is already linked
+          const existingAccount = await context.prisma.account.findFirst({
+            where: {
+              userId: user.id,
+              plaidAccountId: plaidAccount.account_id,
+            },
+          });
+
+          if (existingAccount) {
+            // Update existing account instead of creating a duplicate
+            await context.prisma.account.update({
+              where: { id: existingAccount.id },
+              data: {
+                plaidItemId: plaidItem.id,
+                balance: plaidAccount.balances.current ?? 0,
+                lastSynced: new Date(),
+                isLinked: true,
+              },
+            });
+            continue;
+          }
+
           const accountType = mapPlaidAccountType(
             plaidAccount.type,
             plaidAccount.subtype

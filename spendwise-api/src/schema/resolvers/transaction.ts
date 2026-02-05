@@ -306,11 +306,11 @@ export const transactionResolvers = {
         updateData.categorySource = 'manual';
         updateData.categoryConfidence = 100;
 
-        // Save merchant rule if transaction has a merchant
-        const merchant = input.merchant || existing.merchant;
-        if (merchant) {
+        // Save merchant rule — fall back to description for bank-parsed transactions
+        const ruleSource = input.merchant || existing.merchant || input.description || existing.description;
+        if (ruleSource) {
           try {
-            const ruleResult = await createOrUpdateMerchantRule(context.prisma, user.id, merchant, input.category);
+            const ruleResult = await createOrUpdateMerchantRule(context.prisma, user.id, ruleSource, input.category);
             if (ruleResult && ruleResult.retroactiveCount > 0) {
               console.log(`Rule applied retroactively to ${ruleResult.retroactiveCount} transactions`);
             }

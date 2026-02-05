@@ -174,18 +174,37 @@ export const statementImportResolvers = {
           }
           accountId = input.accountId;
         } else if (input.createNewAccount) {
-          // Create new account
-          const newAccount = await ctx.prisma.account.create({
-            data: {
+          // Build account details
+          const accountName = input.newAccountName || preview.account.accountName || `${preview.account.institution || 'Unknown'} Account`;
+          const accountType = (input.newAccountType || preview.account.accountType || 'CHECKING') as any;
+          const accountInstitution = input.newAccountInstitution || preview.account.institution || 'Unknown';
+
+          // Check for existing account with same name, type, and institution
+          const existingAccount = await ctx.prisma.account.findFirst({
+            where: {
               userId: ctx.user.id,
-              name: input.newAccountName || preview.account.accountName || `${preview.account.institution || 'Unknown'} Account`,
-              type: (input.newAccountType || preview.account.accountType || 'CHECKING') as any,
-              institution: input.newAccountInstitution || preview.account.institution || 'Unknown',
-              balance: 0,
-              mask: preview.account.accountMask || null,
+              name: accountName,
+              type: accountType,
+              institution: accountInstitution,
             },
           });
-          accountId = newAccount.id;
+
+          if (existingAccount) {
+            // Reuse existing account instead of creating a duplicate
+            accountId = existingAccount.id;
+          } else {
+            const newAccount = await ctx.prisma.account.create({
+              data: {
+                userId: ctx.user.id,
+                name: accountName,
+                type: accountType,
+                institution: accountInstitution,
+                balance: 0,
+                mask: preview.account.accountMask || null,
+              },
+            });
+            accountId = newAccount.id;
+          }
         } else if (importRecord.accountId) {
           accountId = importRecord.accountId;
         } else {

@@ -8,6 +8,7 @@ interface ChatInputProps {
   disabled: boolean;
   remaining: number;
   resetAt: string | null;
+  initialMessage?: string;
 }
 
 export default function ChatInput({
@@ -15,8 +16,16 @@ export default function ChatInput({
   disabled,
   remaining,
   resetAt,
+  initialMessage,
 }: ChatInputProps) {
   const [message, setMessage] = useState('');
+
+  // Pre-fill from initialMessage when it changes
+  useEffect(() => {
+    if (initialMessage) {
+      setMessage(initialMessage);
+    }
+  }, [initialMessage]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea
