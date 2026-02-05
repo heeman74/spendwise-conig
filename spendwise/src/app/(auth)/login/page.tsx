@@ -128,7 +128,8 @@ function LoginContent() {
   // Demo login handler
   const handleDemoLogin = async () => {
     setIsLoading(true);
-    // For demo purposes, redirect directly to dashboard
+    // Set cookie so proxy allows access without auth
+    document.cookie = 'spendwise-demo=true; path=/';
     dispatch(setIsDemo(true));
     router.push('/dashboard');
   };

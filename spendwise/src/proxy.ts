@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 export async function proxy(request: NextRequest) {
+  // Allow demo mode (cookie set by login page)
+  const isDemo = request.cookies.get('spendwise-demo')?.value === 'true';
+  if (isDemo) {
+    return NextResponse.next();
+  }
+
   const token = await getToken({ req: request });
 
   if (!token) {
