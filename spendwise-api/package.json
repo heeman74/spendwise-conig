@@ -47,6 +47,9 @@
     "typescript": "^5.3.3",
     "zod": "^4.3.6"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@graphql-tools/schema": "^10.0.2",
     "@types/bcryptjs": "^2.4.6",

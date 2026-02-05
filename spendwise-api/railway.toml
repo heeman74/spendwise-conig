@@ -2,6 +2,8 @@
 builder = "nixpacks"
 
 [build.nixpacks]
+aptPkgs = ["openssl"]
+nixPkgs = ["nodejs_20", "npm-9_x"]
 installCmd = "npm ci"
 buildCmd = "npm run build"
 
