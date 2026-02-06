@@ -251,6 +251,9 @@ function LoginContent() {
             </svg>
             Continue with Google
           </button>
+          <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400 sm:hidden">
+            On mobile? Open this page in Chrome or Safari for Google sign-in.
+          </p>
 
           <Button
             type="button"
