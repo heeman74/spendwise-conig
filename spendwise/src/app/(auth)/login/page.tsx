@@ -125,13 +125,29 @@ function LoginContent() {
     setError('');
   };
 
-  // Demo login handler
+  // Demo login handler - sign in as actual demo user
   const handleDemoLogin = async () => {
     setIsLoading(true);
-    // Set cookie so proxy allows access without auth
-    document.cookie = 'spendwise-demo=true; path=/';
-    dispatch(setIsDemo(true));
-    router.push('/dashboard');
+    setError('');
+
+    try {
+      const result = await signIn('credentials', {
+        email: 'demo@spendwise.com',
+        password: 'demo123456',
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError('Demo account unavailable. Please try again later.');
+      } else {
+        dispatch(setIsDemo(true));
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setError('Demo account unavailable. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Show 2FA verification if on step 2

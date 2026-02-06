@@ -33,7 +33,7 @@ export const analyticsResolvers = {
       const cached = await getCache<Record<string, unknown>>(cacheKey);
       if (cached) return cached;
 
-      const { start, end } = getMonthRange();
+      let { start, end } = getMonthRange();
 
       const [accounts, transactions, goals] = await Promise.all([
         context.prisma.account.findMany({ where: { userId: user.id } }),
@@ -42,6 +42,24 @@ export const analyticsResolvers = {
         }),
         context.prisma.savingsGoal.findMany({ where: { userId: user.id } }),
       ]);
+
+      // If no transactions in current month, fall back to the most recent month with data
+      if (transactions.length === 0) {
+        const latestTx = await context.prisma.transaction.findFirst({
+          where: { userId: user.id },
+          orderBy: { date: 'desc' },
+          select: { date: true },
+        });
+        if (latestTx) {
+          start = new Date(latestTx.date.getFullYear(), latestTx.date.getMonth(), 1);
+          end = new Date(latestTx.date.getFullYear(), latestTx.date.getMonth() + 1, 0, 23, 59, 59, 999);
+          const fallbackTxs = await context.prisma.transaction.findMany({
+            where: { userId: user.id, date: { gte: start, lte: end } },
+          });
+          transactions.length = 0;
+          transactions.push(...fallbackTxs);
+        }
+      }
 
       const totalBalance = accounts.reduce((sum, a) => {
         const balance = parseDecimal(a.balance);

@@ -9,6 +9,9 @@ export function useAnalyticsFilters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Track whether the date range was auto-defaulted (no URL params) vs explicit
+  const [isDefaultRange] = useState(() => !searchParams.get('from') && !searchParams.get('to'));
+
   // Initialize state from URL params or defaults
   const [dateRange, setDateRangeState] = useState<{ from: Date; to: Date }>(() => {
     const fromParam = searchParams.get('from');
@@ -81,5 +84,6 @@ export function useAnalyticsFilters() {
     accountIds,
     setDateRange,
     setAccountIds,
+    isDefaultRange,
   };
 }

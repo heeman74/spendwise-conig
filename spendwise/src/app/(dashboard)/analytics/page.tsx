@@ -19,7 +19,7 @@ import { GET_TRANSACTIONS } from '@/graphql';
 import type { CategoryAmount } from '@/types';
 
 function AnalyticsContent() {
-  const { dateRange, accountIds, setDateRange, setAccountIds } = useAnalyticsFilters();
+  const { dateRange, accountIds, setDateRange, setAccountIds, isDefaultRange } = useAnalyticsFilters();
   const { accounts, loading: accountsLoading } = useAccounts();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const drillDownRef = useRef<HTMLDivElement>(null);
@@ -57,6 +57,21 @@ function AnalyticsContent() {
 
   const drillDownTransactions = drillDownData?.transactions?.edges?.map((e: any) => e.node) ?? [];
   const drillDownTotal = drillDownData?.transactions?.pageInfo?.totalCount ?? 0;
+
+  // If the default current-month date range has no data, fall back to previous month
+  const hasAutoAdjusted = useRef(false);
+  useEffect(() => {
+    if (hasAutoAdjusted.current) return;
+    if (!isDefaultRange) return;
+    if (analyticsLoading) return;
+    if (!analytics) return;
+    if (analytics.summary.transactionCount > 0) return;
+
+    hasAutoAdjusted.current = true;
+    const prevFrom = new Date(dateRange.from);
+    prevFrom.setMonth(prevFrom.getMonth() - 1);
+    setDateRange({ from: startOfMonth(prevFrom), to: endOfMonth(prevFrom) });
+  }, [analyticsLoading, analytics, isDefaultRange, dateRange.from, setDateRange]);
 
   // Scroll to drill-down when a category is selected
   useEffect(() => {

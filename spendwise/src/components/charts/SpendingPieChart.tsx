@@ -1,8 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
 import type { CategoryAmount } from '@/types';
+
+const MAX_SLICES = 8;
 
 interface SpendingPieChartProps {
   data: CategoryAmount[];
@@ -11,7 +14,36 @@ interface SpendingPieChartProps {
 }
 
 export default function SpendingPieChart({ data, showLegend = true, onCategoryClick }: SpendingPieChartProps) {
-  if (!data || data.length === 0) {
+  // Consolidate small categories into "Other" for readability
+  const chartData = useMemo(() => {
+    if (!data || data.length <= MAX_SLICES) return data;
+
+    const totalAmount = data.reduce((sum, c) => sum + c.amount, 0);
+    const top = data.slice(0, MAX_SLICES).map(c => ({ ...c }));
+    const rest = data.slice(MAX_SLICES);
+    const otherAmount = rest.reduce((sum, c) => sum + c.amount, 0);
+    const otherCount = rest.reduce((sum, c) => sum + (c.transactionCount || 0), 0);
+
+    // Merge into existing "Other" slice if present, otherwise add one
+    const existingOther = top.find(c => c.category === 'Other');
+    if (existingOther) {
+      existingOther.amount += otherAmount;
+      existingOther.transactionCount = (existingOther.transactionCount || 0) + otherCount;
+      existingOther.percentage = totalAmount > 0 ? (existingOther.amount / totalAmount) * 100 : 0;
+    } else {
+      top.push({
+        category: 'Other',
+        amount: otherAmount,
+        percentage: totalAmount > 0 ? (otherAmount / totalAmount) * 100 : 0,
+        color: '#9CA3AF',
+        transactionCount: otherCount,
+      });
+    }
+
+    return top;
+  }, [data]);
+
+  if (!chartData || chartData.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
         No spending data available
@@ -38,7 +70,7 @@ export default function SpendingPieChart({ data, showLegend = true, onCategoryCl
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
-          data={data}
+          data={chartData}
           cx="50%"
           cy="50%"
           innerRadius={60}
@@ -52,7 +84,7 @@ export default function SpendingPieChart({ data, showLegend = true, onCategoryCl
           } : undefined}
           style={onCategoryClick ? { cursor: 'pointer' } : undefined}
         >
-          {data.map((entry, index) => (
+          {chartData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
         </Pie>

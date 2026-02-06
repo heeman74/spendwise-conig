@@ -4,6 +4,7 @@ import type { ImportPreviewData, PreviewTransaction } from '../../lib/parsers/ty
 import { createOrUpdateMerchantRule } from '../../lib/merchant-rules';
 import { detectRecurringPatterns } from '../../lib/recurring-detector';
 import { queue as snapshotQueue } from '../../lib/jobs/snapshotNetWorth';
+import { invalidateCache } from '../../lib/redis';
 
 export const statementImportResolvers = {
   Query: {
@@ -485,6 +486,9 @@ export const statementImportResolvers = {
         // Clean up Redis cache
         await ctx.redis.del(`import:preview:${input.importId}`);
 
+        // Invalidate analytics/dashboard cache so new data shows immediately
+        await invalidateCache(`user:${ctx.user!.id}:*`);
+
         return {
           success: true,
           message: `Successfully imported ${toImport.length} transactions`,
@@ -581,6 +585,9 @@ export const statementImportResolvers = {
 
       // Clean up Redis
       await ctx.redis.del(`import:preview:${importId}`);
+
+      // Invalidate analytics/dashboard cache after deleting transactions
+      await invalidateCache(`user:${ctx.user!.id}:*`);
 
       return {
         success: true,
