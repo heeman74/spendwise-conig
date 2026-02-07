@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import InsightCard from '@/components/planning/InsightCard';
 import ChatInterface from '@/components/planning/ChatInterface';
-import { useActiveInsights } from '@/hooks/useFinancialPlanning';
+import { useActiveInsights, useRegenerateInsights } from '@/hooks/useFinancialPlanning';
 
 export default function PlanningPage() {
   return (
@@ -16,7 +16,8 @@ export default function PlanningPage() {
 
 function PlanningContent() {
   const searchParams = useSearchParams();
-  const { insights, loading: insightsLoading } = useActiveInsights();
+  const { insights, loading: insightsLoading, refetch } = useActiveInsights();
+  const { regenerateInsights, loading: regenerating } = useRegenerateInsights();
   const [askQuestion, setAskQuestion] = useState<string | null>(null);
 
   // Read ?ask= query param (from dashboard InsightsWidget navigation)
@@ -99,9 +100,38 @@ function PlanningContent() {
           <p className="text-gray-600 dark:text-gray-400 font-medium mb-1">
             No insights yet
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">
-            Import more statements to unlock AI insights about your finances
+          <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
+            Generate AI-powered insights based on your financial data
           </p>
+          <button
+            onClick={async () => {
+              try {
+                await regenerateInsights();
+                refetch();
+              } catch {
+                // error handled by hook
+              }
+            }}
+            disabled={regenerating}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {regenerating ? (
+              <>
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Generating...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Generate Insights
+              </>
+            )}
+          </button>
         </div>
       )}
 

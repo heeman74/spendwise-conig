@@ -56,23 +56,7 @@ export const financialPlanningResolvers = {
 
     activeInsights: async (_: unknown, __: unknown, context: Context) => {
       const user = requireAuth(context);
-      const insights = await getActiveInsights(context.prisma as any, user.id);
-
-      // Auto-generate insights on first load if none exist
-      if (insights.length === 0) {
-        try {
-          const generated = await generateAndCacheInsights(
-            context.prisma as any,
-            user.id
-          );
-          return generated;
-        } catch (error) {
-          console.error('Failed to auto-generate insights:', error);
-          return [];
-        }
-      }
-
-      return insights;
+      return getActiveInsights(context.prisma as any, user.id);
     },
 
     chatRateLimit: async (_: unknown, __: unknown, context: Context) => {
