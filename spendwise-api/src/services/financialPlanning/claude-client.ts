@@ -57,6 +57,10 @@ export async function* streamChatResponse(
     },
   ];
 
+  if (!anthropic) {
+    throw new Error('AI features unavailable — ANTHROPIC_API_KEY not configured');
+  }
+
   try {
     const stream = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -98,6 +102,10 @@ export async function generateInsightsFromSummary(
     '{{FINANCIAL_SUMMARY}}',
     JSON.stringify(financialSummary, null, 2)
   );
+
+  if (!anthropic) {
+    return [];
+  }
 
   try {
     const response = await anthropic.messages.create({
@@ -149,6 +157,10 @@ export async function parseGoalFromText(
       '{{CONVERSATION_CONTEXT}}',
       'No prior conversation context.'
     );
+  }
+
+  if (!anthropic) {
+    return null;
   }
 
   try {

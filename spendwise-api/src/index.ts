@@ -23,6 +23,9 @@ async function startServer() {
   const app = express();
   const httpServer = http.createServer(app);
 
+  // Trust proxy when behind a reverse proxy (Railway, Render, etc.)
+  app.set('trust proxy', 1);
+
   // Security middleware
   app.use(helmet());
   app.use(generalLimiter);
